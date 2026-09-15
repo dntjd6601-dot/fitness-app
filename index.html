@@ -8,6 +8,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b132b">
     <title>통합 체력 평가 & 소셜 운동 공유 기록장</title>
+    
+    <!-- Firebase Cloud DB SDK 연동 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         :root {
             --bg-dark: #0b132b;
@@ -83,12 +88,12 @@
             color: #000;
         }
 
-        /* 방 공유 섹션 전용 스타일 */
+        /* 공유 방 및 닉네임 설정 영역 */
         .room-box {
             background: rgba(0, 240, 255, 0.05);
             border: 1px solid var(--accent-cyan);
             border-radius: 12px;
-            padding: 16px;
+            padding: 18px;
             margin-bottom: 20px;
         }
 
@@ -97,7 +102,7 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .room-input {
@@ -108,17 +113,14 @@
             border-radius: 6px;
             font-weight: bold;
             font-size: 14px;
-            width: 150px;
-            text-transform: uppercase;
+            width: 140px;
         }
 
         .room-status {
             font-size: 13px;
             color: var(--accent-green);
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            margin-top: 10px;
         }
 
         h2 { 
@@ -250,7 +252,7 @@
 
         .media-preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -289,7 +291,7 @@
 
         .workout-memo {
             width: 100%;
-            min-height: 100px;
+            min-height: 90px;
             background: var(--bg-dark);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -299,13 +301,6 @@
             line-height: 1.5;
             resize: vertical;
             box-sizing: border-box;
-        }
-
-        .memo-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 12px;
         }
 
         .btn-small {
@@ -321,66 +316,51 @@
         .btn-clear { background: #ff4d4d; color: #fff; }
         .btn-sync { background: var(--accent-cyan); color: #000; }
 
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
+        /* 그룹 공유 일지 카드 레이아웃 */
+        .group-logs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
         }
 
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 10px; 
+        .member-log-card {
             background: var(--card-inner-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            min-width: 600px;
+            border: 1px solid var(--accent-purple);
+            border-radius: 10px;
+            padding: 15px;
         }
 
-        th, td { 
-            border: 1px solid var(--border-color); 
-            padding: 10px 8px; 
-            text-align: center; 
-            font-size: 12px; 
-            color: var(--text-main);
+        .member-name-tag {
+            font-weight: bold;
+            color: var(--accent-purple);
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: var(--card-inner-bg); border-radius: 8px; overflow: hidden; min-width: 600px; }
+        th, td { border: 1px solid var(--border-color); padding: 10px 8px; text-align: center; font-size: 12px; color: var(--text-main); }
         th { background-color: #1e293b; color: var(--text-sub); }
 
-        .badge { 
-            padding: 4px 8px; 
-            border-radius: 20px; 
-            font-weight: bold; 
-            color: #000; 
-            display: inline-block; 
-            font-size: 10px; 
-        }
+        .badge { padding: 4px 8px; border-radius: 20px; font-weight: bold; color: #000; display: inline-block; font-size: 10px; }
         .excellent { background-color: var(--accent-green); }
         .good { background-color: var(--accent-cyan); }
         .average { background-color: var(--accent-orange); }
         .poor { background-color: #ff4d4d; color: #fff; }
         .elite { background-color: var(--accent-purple); color: #fff; }
 
-        .source-tag { 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            font-size: 10px; 
-            font-weight: bold; 
-            color: #fff; 
-        }
+        .source-tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: #fff; }
         .src-korea { background-color: #3b82f6; }
         .src-strength { background-color: #8b5cf6; }
         .src-acsm { background-color: #f97316; }
         .src-fms { background-color: #14b8a6; }
 
-        .ref-table { margin-bottom: 20px; }
         .highlight-text { color: var(--accent-green); font-weight: bold; }
-
-        .highlight-cell {
-            border: 2px solid var(--highlight-border) !important;
-            background-color: var(--highlight-bg) !important;
-            font-weight: bold !important;
-            color: var(--accent-green) !important;
-        }
+        .highlight-cell { border: 2px solid var(--highlight-border) !important; background-color: var(--highlight-bg) !important; font-weight: bold !important; color: var(--accent-green) !important; }
     </style>
 </head>
 <body>
@@ -388,25 +368,28 @@
 <div class="container">
     <div class="header-bar">
         <h1>TOTAL FITNESS LAB</h1>
-        <button class="share-btn" onclick="shareApp()">🔗 앱 공유하기</button>
+        <button class="share-btn" onclick="shareApp()">🔗 주소 공유하기</button>
     </div>
 
-    <!-- 🌐 함께 보는 실시간 그룹 방 컨트롤러 -->
+    <!-- 🌐 방 번호 & 닉네임 공유 설정 -->
     <div class="room-box">
-        <div style="font-weight:bold; color:var(--accent-cyan); font-size:15px; margin-bottom:5px;">
+        <div style="font-weight:bold; color:var(--accent-cyan); font-size:15px;">
             👥 실시간 운동 공유 방 (Group Sync)
         </div>
-        <div style="font-size:12px; color:var(--text-sub);">
-            방 코드를 생성하거나 입력하면 상대방과 함께 운동 일지와 증빙 미디어를 공유할 수 있습니다.
+        <div style="font-size:12px; color:var(--text-sub); margin-top:4px;">
+            방 번호와 본인의 닉네임을 설정하여 입장하면 그룹 멤버들이 실시간으로 내가 올린 일지를 공유받아 볼 수 있습니다.
         </div>
+        
         <div class="room-controls">
-            <button class="btn-small btn-save" onclick="createNewRoom()">🔑 새 방 만들기</button>
-            <input type="text" id="roomCodeInput" class="room-input" placeholder="방 코드 입력">
-            <button class="btn-small btn-sync" onclick="joinRoom()">입장 / 불러오기</button>
-            <button class="btn-small btn-clear" onclick="leaveRoom()">방 나가기</button>
+            <input type="text" id="userNameInput" class="room-input" placeholder="본인 닉네임" value="운동이">
+            <input type="text" id="roomCodeInput" class="room-input" placeholder="방 번호(예: 1004)" style="text-transform: uppercase;">
+            <button class="btn-small btn-save" onclick="createNewRoom()">🔑 새 방 생성</button>
+            <button class="btn-small btn-sync" onclick="joinRoom()">입장 / 동기화</button>
+            <button class="btn-small btn-clear" onclick="leaveRoom()">퇴장</button>
         </div>
-        <div style="margin-top:10px;" class="room-status" id="roomStatusDisplay">
-            🌐 접속 상태: 개인 로컬 모드 (공유 중 아님)
+
+        <div class="room-status" id="roomStatusDisplay">
+            🌐 상태: 오프라인 (개인 전용 모드)
         </div>
     </div>
 
@@ -466,29 +449,37 @@
         </table>
     </div>
 
-    <!-- 4. 일차별 증빙 미디어 & 공유 운동 기록장 -->
-    <h2>일차별 운동 일지 (WORKOUT LOG)</h2>
+    <!-- 4. 일차별 운동 기록 작성 -->
+    <h2>일차별 운동 일지 작성 및 내 미디어 등록</h2>
     
     <div id="dayTabsContainer" class="day-tabs-container"></div>
 
     <div class="workout-plan-box">
-        <div class="section-title"><span id="currentDayTitle" style="color:var(--accent-cyan);">1일차</span> 미디어 업로드</div>
+        <div class="section-title"><span id="currentDayTitle" style="color:var(--accent-cyan);">1일차</span> 내 증빙 파일 첨부</div>
         
         <div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
             <span style="font-size:22px;">📷 / 🎥</span><br>
-            <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 선택</span>
-            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 파일 추가 시 해당 방의 멤버들과 함께 보입니다)</div>
+            <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 업로드</span>
+            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 선택 시 공유 방의 모든 멤버들에게 게시됩니다)</div>
             <input type="file" id="mediaInput" accept="image/*, video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
         </div>
 
         <div id="mediaPreviewGrid" class="media-preview-grid"></div>
 
-        <div class="section-title"><span id="memoDayLabel" style="color:var(--accent-cyan);">1일차</span> 운동 메모</div>
-        <textarea id="workoutMemo" class="workout-memo" oninput="autoSaveMemo()" placeholder="예) 스쿼트 100kg 5세트 완료. 방 멤버들과 일지 공유 중!"></textarea>
+        <div class="section-title"><span id="memoDayLabel" style="color:var(--accent-cyan);">1일차</span> 내 운동 메모</div>
+        <textarea id="workoutMemo" class="workout-memo" oninput="autoSaveMemo()" placeholder="예) 스쿼트 100kg 완료. 방 멤버들 파이팅!"></textarea>
         
-        <div class="memo-actions">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
             <button class="btn-small btn-clear" onclick="deleteCurrentDay()">현재 일차 삭제</button>
-            <button class="btn-small btn-save" onclick="syncDataToRoom()">서버에 저장 및 동기화</button>
+            <button class="btn-small btn-save" style="padding:10px 20px; font-size:14px;" onclick="uploadLogToRoom()">방으로 일지 등록/공유 🚀</button>
+        </div>
+    </div>
+
+    <!-- 👥 그룹 공유 일지 표시 영역 -->
+    <h2>👥 방 멤버 전체 공유 일지 (<span id="sharedDayTitle" style="color:var(--accent-cyan);">1일차</span>)</h2>
+    <div id="groupLogsContainer" class="group-logs-container">
+        <div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">
+            방 번호를 입력하거나 새 방을 만든 후 [방으로 일지 등록/공유]를 누르면 여기에 멤버들의 일지가 함께 열람됩니다.
         </div>
     </div>
 
@@ -552,125 +543,156 @@
 </div>
 
 <script>
-// --- 공유 방 및 데이터 관리 변수 ---
-let currentRoomCode = localStorage.getItem('fitness_current_room') || '';
-let workoutData = JSON.parse(localStorage.getItem('fitness_workout_data') || '{}');
+// --- Firebase DB 초기화 (공용 서버 연결) ---
+const firebaseConfig = {
+    databaseURL: "https://fitness-app-room-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+// --- 상태 및 저장 변수 ---
+let currentRoomCode = localStorage.getItem('fitness_room_code') || '';
+let myUserName = localStorage.getItem('fitness_user_name') || '운동이_' + Math.floor(100 + Math.random()*900);
+let myWorkoutData = JSON.parse(localStorage.getItem('fitness_my_workout_data') || '{}');
 let activeDay = 1;
 
-if (Object.keys(workoutData).length === 0) {
-    workoutData = { 1: { media: [], memo: "" } };
+if (Object.keys(myWorkoutData).length === 0) {
+    myWorkoutData = { 1: { media: [], memo: "" } };
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    // URL에 room 파라미터가 포함되어 있으면 자동 접속
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomParam = urlParams.get('room');
-    if (roomParam) {
-        currentRoomCode = roomParam.toUpperCase();
+    document.getElementById('userNameInput').value = myUserName;
+    if (currentRoomCode) {
         document.getElementById('roomCodeInput').value = currentRoomCode;
         joinRoom();
-    } else if (currentRoomCode) {
-        document.getElementById('roomCodeInput').value = currentRoomCode;
-        updateRoomStatusUI();
-        fetchRoomData();
     }
-    
     renderTabs();
     loadDayData(1);
 });
 
-// --- 실시간 공유 방 (Group Sync) 관리 ---
+// --- 공유 방 관리 함수 ---
 function createNewRoom() {
-    const randomCode = 'FIT-' + Math.floor(1000 + Math.random() * 9000);
-    currentRoomCode = randomCode;
-    document.getElementById('roomCodeInput').value = currentRoomCode;
-    localStorage.setItem('fitness_current_room', currentRoomCode);
-    
-    updateRoomStatusUI();
-    syncDataToRoom();
-    alert(`🎉 새 방이 생성되었습니다!\n방 코드: ${currentRoomCode}\n친구들에게 이 코드를 전달해 주세요.`);
+    const randomCode = 'ROOM' + Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('roomCodeInput').value = randomCode;
+    joinRoom();
 }
 
 function joinRoom() {
-    const inputCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-    if (!inputCode) {
-        alert('입장할 방 코드를 입력해 주세요.');
+    const roomInput = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+    const nameInput = document.getElementById('userNameInput').value.trim();
+
+    if (!roomInput) {
+        alert('방 번호를 입력해 주세요.');
         return;
     }
-    
-    currentRoomCode = inputCode;
-    localStorage.setItem('fitness_current_room', currentRoomCode);
-    updateRoomStatusUI();
-    fetchRoomData();
+    if (!nameInput) {
+        alert('본인의 닉네임을 입력해 주세요.');
+        return;
+    }
+
+    currentRoomCode = roomInput;
+    myUserName = nameInput;
+
+    localStorage.setItem('fitness_room_code', currentRoomCode);
+    localStorage.setItem('fitness_user_name', myUserName);
+
+    document.getElementById('roomStatusDisplay').innerHTML = `🟢 접속 방 번호: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> | 👤 닉네임: <b style="color:var(--accent-green);">${myUserName}</b>`;
+
+    // 해당 방의 데이터 실시간 수신 리스너 등록
+    listenToRoomUpdates();
+    alert(`[${currentRoomCode}] 방에 연결되었습니다!`);
 }
 
 function leaveRoom() {
-    currentRoomCode = '';
-    localStorage.removeItem('fitness_current_room');
-    document.getElementById('roomCodeInput').value = '';
-    updateRoomStatusUI();
-    alert('공유 방에서 퇴장하였습니다. 개인 모드로 전환됩니다.');
-}
-
-function updateRoomStatusUI() {
-    const display = document.getElementById('roomStatusDisplay');
     if (currentRoomCode) {
-        display.innerHTML = `🟢 현재 공유 방: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> <button class="btn-small btn-sync" style="padding:2px 8px; margin-left:8px;" onclick="copyRoomLink()">📋 방 링크 복사</button>`;
-    } else {
-        display.innerHTML = `🌐 접속 상태: 개인 로컬 모드 (공유 중 아님)`;
+        db.ref('rooms/' + currentRoomCode).off();
     }
+    currentRoomCode = '';
+    localStorage.removeItem('fitness_room_code');
+    document.getElementById('roomCodeInput').value = '';
+    document.getElementById('roomStatusDisplay').innerHTML = `🌐 상태: 오프라인 (개인 전용 모드)`;
+    document.getElementById('groupLogsContainer').innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px;">방에서 퇴장하였습니다.</div>`;
 }
 
-function copyRoomLink() {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
-    navigator.clipboard.writeText(shareUrl);
-    alert(`방 공유 링크가 복사되었습니다!\n${shareUrl}`);
-}
-
-// 클라우드 데이터 가져오기 (JSONBin Public API 연동)
-function fetchRoomData() {
-    if (!currentRoomCode) return;
-    
-    fetch(`https://api.keyvalue.xyz/${currentRoomCode}/fitnessData`)
-        .then(res => res.json())
-        .then(data => {
-            if (data) {
-                workoutData = data;
-                saveToStorageLocal();
-                renderTabs();
-                loadDayData(activeDay);
-            }
-        })
-        .catch(() => {
-            // 키-값 스토리지 보조 연동
-        });
-}
-
-// 클라우드로 데이터 전송/저장
-function syncDataToRoom() {
+// 방으로 내 운동일지 게시/업로드
+function uploadLogToRoom() {
     autoSaveMemo();
     if (!currentRoomCode) {
-        alert('저장되었습니다 (개인 로컬 저장소)');
+        alert('먼저 방 번호를 입력하거나 새 방을 생성하여 입장해 주세요.');
         return;
     }
 
-    fetch(`https://api.keyvalue.xyz/${currentRoomCode}/fitnessData`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(workoutData)
+    const dayData = myWorkoutData[activeDay] || { media: [], memo: "" };
+
+    // DB 업로드 (특수문자 방지 및 인코딩)
+    const sanitizedUserKey = encodeURIComponent(myUserName).replace(/\./g, '%2E');
+
+    db.ref(`rooms/${currentRoomCode}/days/${activeDay}/${sanitizedUserKey}`).set({
+        userName: myUserName,
+        memo: dayData.memo || "",
+        media: dayData.media || [],
+        updatedAt: new Date().toLocaleTimeString()
     }).then(() => {
-        alert(`[${currentRoomCode}] 방에 데이터가 공유/저장 되었습니다!`);
-    }).catch(() => {
-        alert('로컬에 저장되었습니다. (공유 서버 동기화 완료)');
+        alert(`${activeDay}일차 운동 일지가 [${currentRoomCode}] 방으로 공유되었습니다!`);
+    }).catch((err) => {
+        alert('공유 실패: 용량이 너무 큰 이미지/동영상은 제외해 주세요.');
     });
 }
 
-// --- 일차 및 미디어 UI 제어 ---
+// 실시간으로 그룹 멤버들의 기록 구독
+function listenToRoomUpdates() {
+    if (!currentRoomCode) return;
+
+    db.ref(`rooms/${currentRoomCode}/days/${activeDay}`).on('value', (snapshot) => {
+        const logsContainer = document.getElementById('groupLogsContainer');
+        logsContainer.innerHTML = '';
+
+        const data = snapshot.val();
+        if (!data) {
+            logsContainer.innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">아직 [${currentRoomCode}] 방의 ${activeDay}일차에 공유된 일지가 없습니다. [방으로 일지 등록/공유] 버튼을 눌러 첫 일지를 남겨보세요!</div>`;
+            return;
+        }
+
+        Object.keys(data).forEach(userKey => {
+            const userLog = data[userKey];
+            const card = document.createElement('div');
+            card.className = 'member-log-card';
+
+            let mediaHtml = '';
+            if (userLog.media && userLog.media.length > 0) {
+                mediaHtml = '<div class="media-preview-grid">';
+                userLog.media.forEach(m => {
+                    if (m.type === 'video') {
+                        mediaHtml += `<div class="media-card"><video src="${m.src}" controls></video></div>`;
+                    } else {
+                        mediaHtml += `<div class="media-card"><img src="${m.src}" onclick="window.open('${m.src}')"></div>`;
+                    }
+                });
+                mediaHtml += '</div>';
+            } else {
+                mediaHtml = '<div style="color:var(--text-sub); font-size:11px; margin-bottom:10px;">(등록된 사진/동영상 없음)</div>';
+            }
+
+            card.innerHTML = `
+                <div class="member-name-tag">
+                    👤 ${userLog.userName} <span style="font-size:11px; color:var(--text-sub); font-weight:normal;">(${userLog.updatedAt || '최근 작성'})</span>
+                </div>
+                ${mediaHtml}
+                <div style="background:var(--bg-dark); padding:10px; border-radius:6px; font-size:13px; white-space:pre-wrap; border:1px solid var(--border-color);">${userLog.memo || '메모가 없습니다.'}</div>
+            `;
+            logsContainer.appendChild(card);
+        });
+    });
+}
+
+// --- 일차 & 내 작성 UI ---
 function renderTabs() {
     const tabsContainer = document.getElementById('dayTabsContainer');
     tabsContainer.innerHTML = '';
 
-    const days = Object.keys(workoutData).map(Number).sort((a,b) => a - b);
+    const days = Object.keys(myWorkoutData).map(Number).sort((a,b) => a - b);
     
     days.forEach(day => {
         const tab = document.createElement('button');
@@ -691,24 +713,27 @@ function switchDay(day) {
     activeDay = day;
     renderTabs();
     loadDayData(day);
+    if (currentRoomCode) {
+        listenToRoomUpdates();
+    }
 }
 
 function addNewDay() {
-    const days = Object.keys(workoutData).map(Number);
+    const days = Object.keys(myWorkoutData).map(Number);
     const nextDay = days.length > 0 ? Math.max(...days) + 1 : 1;
-    workoutData[nextDay] = { media: [], memo: "" };
-    saveToStorageLocal();
+    myWorkoutData[nextDay] = { media: [], memo: "" };
+    saveToLocalStorage();
     switchDay(nextDay);
 }
 
 function loadDayData(day) {
     document.getElementById('currentDayTitle').innerText = `${day}일차`;
+    document.getElementById('sharedDayTitle').innerText = `${day}일차`;
     document.getElementById('uploadDayLabel').innerText = `${day}일차`;
     document.getElementById('memoDayLabel').innerText = `${day}일차`;
 
-    const dayData = workoutData[day] || { media: [], memo: "" };
+    const dayData = myWorkoutData[day] || { media: [], memo: "" };
     document.getElementById('workoutMemo').value = dayData.memo || "";
-    
     renderMediaList(dayData.media);
 }
 
@@ -716,7 +741,7 @@ function handleMediaUpload(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    if (!workoutData[activeDay]) workoutData[activeDay] = { media: [], memo: "" };
+    if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
 
     Array.from(files).forEach(file => {
         const reader = new FileReader();
@@ -726,9 +751,9 @@ function handleMediaUpload(event) {
                 type: file.type.startsWith('video/') ? 'video' : 'image',
                 src: e.target.result
             };
-            workoutData[activeDay].media.push(fileData);
-            saveToStorageLocal();
-            renderMediaList(workoutData[activeDay].media);
+            myWorkoutData[activeDay].media.push(fileData);
+            saveToLocalStorage();
+            renderMediaList(myWorkoutData[activeDay].media);
         };
         reader.readAsDataURL(file);
     });
@@ -739,7 +764,7 @@ function renderMediaList(mediaList) {
     grid.innerHTML = '';
 
     if (!mediaList || mediaList.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 미디어가 없습니다.</div>';
+        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 내 미디어가 없습니다.</div>';
         return;
     }
 
@@ -757,34 +782,34 @@ function renderMediaList(mediaList) {
 }
 
 function deleteMedia(id) {
-    if (workoutData[activeDay]) {
-        workoutData[activeDay].media = workoutData[activeDay].media.filter(item => item.id !== id);
-        saveToStorageLocal();
-        renderMediaList(workoutData[activeDay].media);
+    if (myWorkoutData[activeDay]) {
+        myWorkoutData[activeDay].media = myWorkoutData[activeDay].media.filter(item => item.id !== id);
+        saveToLocalStorage();
+        renderMediaList(myWorkoutData[activeDay].media);
     }
 }
 
 function autoSaveMemo() {
-    if (!workoutData[activeDay]) workoutData[activeDay] = { media: [], memo: "" };
-    workoutData[activeDay].memo = document.getElementById('workoutMemo').value;
-    saveToStorageLocal();
+    if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
+    myWorkoutData[activeDay].memo = document.getElementById('workoutMemo').value;
+    saveToLocalStorage();
 }
 
 function deleteCurrentDay() {
     if (confirm(`${activeDay}일차를 삭제하시겠습니까?`)) {
-        delete workoutData[activeDay];
-        const remainingDays = Object.keys(workoutData).map(Number);
+        delete myWorkoutData[activeDay];
+        const remainingDays = Object.keys(myWorkoutData).map(Number);
         activeDay = remainingDays.length > 0 ? Math.min(...remainingDays) : 1;
-        if (!workoutData[activeDay]) workoutData[1] = { media: [], memo: "" };
-        saveToStorageLocal();
+        if (!myWorkoutData[activeDay]) myWorkoutData[1] = { media: [], memo: "" };
+        saveToLocalStorage();
         renderTabs();
         loadDayData(activeDay);
     }
 }
 
-function saveToStorageLocal() {
+function saveToLocalStorage() {
     try {
-        localStorage.setItem('fitness_workout_data', JSON.stringify(workoutData));
+        localStorage.setItem('fitness_my_workout_data', JSON.stringify(myWorkoutData));
     } catch (e) {}
 }
 
@@ -793,11 +818,11 @@ function shareApp() {
         navigator.share({ title: '통합 체력 평가장', url: window.location.href });
     } else {
         navigator.clipboard.writeText(window.location.href);
-        alert('앱 주소가 복사되었습니다!');
+        alert('사이트 주소가 복사되었습니다!');
     }
 }
 
-// --- 체력 및 근력 계산 엔진 ---
+// --- 체력 및 근력 분석 알고리즘 ---
 function getStrengthAgeFactor(age) {
     if (age < 18) return 0.90 + ((age - 14) * 0.025);
     if (age <= 34) return 1.00;
