@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- PWA 및 모바일 앱 설정 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b132b">
-    <title>통합 체력 평가 & 소셜 운동 공유 기록장</title>
-
+    <title>통합 체력 평가 & 일차별 운동 기록장</title>
     <style>
         :root {
             --bg-dark: #0b132b;
@@ -83,40 +83,6 @@
             color: #000;
         }
 
-        .room-box {
-            background: rgba(0, 240, 255, 0.05);
-            border: 1px solid var(--accent-cyan);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 20px;
-        }
-
-        .room-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            margin-top: 12px;
-        }
-
-        .room-input {
-            background: var(--card-inner-bg);
-            border: 1px solid var(--border-color);
-            color: var(--accent-green);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            width: 140px;
-        }
-
-        .room-status {
-            font-size: 13px;
-            color: var(--accent-green);
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
         h2 { 
             color: var(--accent-cyan); 
             font-size: 18px; 
@@ -187,6 +153,12 @@
             box-shadow: 0 4px 15px rgba(0, 255, 102, 0.3);
         }
 
+        .action-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 102, 0.5);
+        }
+
+        /* 일차별 탭 전용 스타일 */
         .day-tabs-container {
             display: flex;
             gap: 8px;
@@ -206,6 +178,7 @@
             font-weight: bold;
             cursor: pointer;
             white-space: nowrap;
+            transition: all 0.2s;
         }
 
         .day-tab.active {
@@ -223,6 +196,7 @@
             font-size: 13px;
             font-weight: bold;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .workout-plan-box {
@@ -241,11 +215,16 @@
             background: rgba(0, 240, 255, 0.03);
             cursor: pointer;
             margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+
+        .file-upload-wrapper:hover {
+            background: rgba(0, 240, 255, 0.08);
         }
 
         .media-preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -280,11 +259,14 @@
             height: 24px;
             font-weight: bold;
             cursor: pointer;
+            line-height: 24px;
+            text-align: center;
+            font-size: 13px;
         }
 
         .workout-memo {
             width: 100%;
-            min-height: 90px;
+            min-height: 100px;
             background: var(--bg-dark);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -294,6 +276,18 @@
             line-height: 1.5;
             resize: vertical;
             box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .workout-memo:focus {
+            border-color: var(--accent-green);
+        }
+
+        .memo-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
         }
 
         .btn-small {
@@ -307,52 +301,84 @@
 
         .btn-save { background: var(--accent-green); color: #000; }
         .btn-clear { background: #ff4d4d; color: #fff; }
-        .btn-sync { background: var(--accent-cyan); color: #000; }
 
-        .group-logs-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 15px;
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .member-log-card {
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
             background: var(--card-inner-bg);
-            border: 1px solid var(--accent-purple);
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 600px;
         }
 
-        .member-name-tag {
-            font-weight: bold;
-            color: var(--accent-purple);
-            font-size: 14px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        th, td { 
+            border: 1px solid var(--border-color); 
+            padding: 10px 8px; 
+            text-align: center; 
+            font-size: 12px; 
+            transition: all 0.2s ease; 
+            color: var(--text-main);
         }
 
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: var(--card-inner-bg); border-radius: 8px; overflow: hidden; min-width: 600px; }
-        th, td { border: 1px solid var(--border-color); padding: 10px 8px; text-align: center; font-size: 12px; color: var(--text-main); }
-        th { background-color: #1e293b; color: var(--text-sub); }
+        th { 
+            background-color: #1e293b; 
+            color: var(--text-sub); 
+            font-weight: 700;
+        }
 
-        .badge { padding: 4px 8px; border-radius: 20px; font-weight: bold; color: #000; display: inline-block; font-size: 10px; }
+        .badge { 
+            padding: 4px 8px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            color: #000; 
+            display: inline-block; 
+            font-size: 10px; 
+        }
         .excellent { background-color: var(--accent-green); }
         .good { background-color: var(--accent-cyan); }
         .average { background-color: var(--accent-orange); }
         .poor { background-color: #ff4d4d; color: #fff; }
         .elite { background-color: var(--accent-purple); color: #fff; }
 
-        .source-tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: #fff; }
+        .source-tag { 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 10px; 
+            font-weight: bold; 
+            color: #fff; 
+            display: inline-block; 
+        }
         .src-korea { background-color: #3b82f6; }
         .src-strength { background-color: #8b5cf6; }
         .src-acsm { background-color: #f97316; }
         .src-fms { background-color: #14b8a6; }
 
+        .ref-table { margin-bottom: 20px; }
         .highlight-text { color: var(--accent-green); font-weight: bold; }
-        .highlight-cell { border: 2px solid var(--highlight-border) !important; background-color: var(--highlight-bg) !important; font-weight: bold !important; color: var(--accent-green) !important; }
+
+        .highlight-cell {
+            border: 2px solid var(--highlight-border) !important;
+            background-color: var(--highlight-bg) !important;
+            font-weight: bold !important;
+            color: var(--accent-green) !important;
+        }
+
+        .info-box {
+            background: var(--card-inner-bg);
+            border-left: 4px solid var(--accent-cyan);
+            padding: 10px 14px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -360,30 +386,14 @@
 <div class="container">
     <div class="header-bar">
         <h1>TOTAL FITNESS LAB</h1>
-        <button class="share-btn" onclick="shareApp()">🔗 주소 공유하기</button>
+        <button class="share-btn" onclick="shareApp()">🔗 앱 공유하기</button>
     </div>
 
-    <div class="room-box">
-        <div style="font-weight:bold; color:var(--accent-cyan); font-size:15px;">
-            👥 실시간 운동 공유 방 (Group Sync)
-        </div>
-        <div style="font-size:12px; color:var(--text-sub); margin-top:4px;">
-            방 번호와 본인의 닉네임을 설정하여 입장하면 그룹 멤버들이 실시간으로 내가 올린 일지를 공유받아 볼 수 있습니다.
-        </div>
-        
-        <div class="room-controls">
-            <input type="text" id="userNameInput" class="room-input" placeholder="본인 닉네임" value="운동이">
-            <input type="text" id="roomCodeInput" class="room-input" placeholder="방 번호(예: 1004)" style="text-transform: uppercase;">
-            <button class="btn-small btn-save" onclick="createNewRoom()">🔑 새 방 생성</button>
-            <button class="btn-small btn-sync" onclick="joinRoom()">입장 / 동기화</button>
-            <button class="btn-small btn-clear" onclick="leaveRoom()">퇴장</button>
-        </div>
-
-        <div class="room-status" id="roomStatusDisplay">
-            🌐 상태: 오프라인 (개인 전용 모드)
-        </div>
+    <div class="info-box">
+        <b>💡 이용 안내:</b> 탭을 눌러 <b>1일차, 2일차 등 날짜/회차별로 사진, 동영상 및 메모를 독립적으로 분리하여 관리</b>할 수 있습니다.
     </div>
-
+    
+    <!-- 1. 프로필 입력 -->
     <div class="section-title">USER PROFILE (성별, 연령, 신체 지표)</div>
     <div class="grid">
         <div class="input-group">
@@ -407,6 +417,7 @@
         </div>
     </div>
 
+    <!-- 2. 측정치 입력 -->
     <div class="section-title">ATHLETIC METRICS (근력 1RM & 체력 측정값)</div>
     <div class="grid">
         <div class="input-group"><label>스쿼트 (kg)</label><input type="number" id="squat" value="110" oninput="calculateFitness()"></div>
@@ -421,6 +432,7 @@
 
     <button class="action-btn" onclick="calculateFitness()">ANALYZE PERFORMANCE (분석 갱신)</button>
 
+    <!-- 3. 개인 평가 결과 -->
     <h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-sub);">(<span id="currentProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
     <div class="table-responsive">
         <table>
@@ -437,38 +449,35 @@
         </table>
     </div>
 
-    <h2>일차별 운동 일지 작성 및 내 미디어 등록</h2>
+    <!-- 4. 일차별 증빙 미디어 & 메모장 (개편 섹션) -->
+    <h2>일차별 운동 일지 (WORKOUT LOG)</h2>
     
+    <!-- 일차 선택 탭 목록 -->
     <div id="dayTabsContainer" class="day-tabs-container"></div>
 
     <div class="workout-plan-box">
-        <div class="section-title"><span id="currentDayTitle" style="color:var(--accent-cyan);">1일차</span> 내 증빙 파일 첨부</div>
+        <div class="section-title"><span id="currentDayTitle" style="color:var(--accent-cyan);">1일차</span> 미디어 업로드</div>
         
         <div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
             <span style="font-size:22px;">📷 / 🎥</span><br>
-            <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 업로드</span>
-            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 선택 시 공유 방의 모든 멤버들에게 게시됩니다)</div>
+            <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 선택</span>
+            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 파일을 추가하면 해당 일차에 즉시 보입니다)</div>
             <input type="file" id="mediaInput" accept="image/*, video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
         </div>
 
+        <!-- 선택된 일차의 미디어 미리보기 -->
         <div id="mediaPreviewGrid" class="media-preview-grid"></div>
 
-        <div class="section-title"><span id="memoDayLabel" style="color:var(--accent-cyan);">1일차</span> 내 운동 메모</div>
-        <textarea id="workoutMemo" class="workout-memo" oninput="autoSaveMemo()" placeholder="예) 스쿼트 100kg 완료. 방 멤버들 파이팅!"></textarea>
+        <div class="section-title"><span id="memoDayLabel" style="color:var(--accent-cyan);">1일차</span> 운동 메모</div>
+        <textarea id="workoutMemo" class="workout-memo" oninput="autoSaveMemo()" placeholder="예) 스쿼트 100kg 5세트 완료. 포즈 자세 촬영 완료."></textarea>
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-            <button class="btn-small btn-clear" onclick="deleteCurrentDay()">현재 일차 삭제</button>
-            <button class="btn-small btn-save" id="uploadBtn" style="padding:10px 20px; font-size:14px;" onclick="uploadLogToRoom()">방으로 일지 등록/공유 🚀</button>
+        <div class="memo-actions">
+            <button class="btn-small btn-clear" onclick="deleteCurrentDay()">현재 일차 전체 삭제</button>
+            <button class="btn-small btn-save" onclick="saveMemoManual()">메모 저장</button>
         </div>
     </div>
 
-    <h2>👥 방 멤버 전체 공유 일지 (<span id="sharedDayTitle" style="color:var(--accent-cyan);">1일차</span>)</h2>
-    <div id="groupLogsContainer" class="group-logs-container">
-        <div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">
-            방 번호를 입력하거나 새 방을 만든 후 [방으로 일지 등록/공유]를 누르면 여기에 멤버들의 일지가 함께 열람됩니다.
-        </div>
-    </div>
-
+    <!-- 5. 참조 등급표 -->
     <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub);">(<span id="refProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
     
     <div class="section-title">국민체력100 - <span id="kneaProfileTitle">남성 만 40~49세</span></div>
@@ -528,232 +537,28 @@
 </div>
 
 <script>
-// --- 수정된 본인 프로젝트 Firebase REST API 연결 주소 ---
-const FIREBASE_DB_URL = "https://fitness-6a8e0-default-rtdb.asia-southeast1.firebasedatabase.app";
-
-let currentRoomCode = localStorage.getItem('fitness_room_code') || '';
-let myUserName = localStorage.getItem('fitness_user_name') || '운동이_' + Math.floor(100 + Math.random()*900);
-let myWorkoutData = JSON.parse(localStorage.getItem('fitness_my_workout_data') || '{}');
+// --- 일차별 메인 데이터 관리 스크립트 ---
+let workoutData = JSON.parse(localStorage.getItem('fitness_workout_data') || '{}');
 let activeDay = 1;
-let syncInterval = null;
 
-if (Object.keys(myWorkoutData).length === 0) {
-    myWorkoutData = { 1: { media: [], memo: "" } };
+// 초기 데이터 구조 생성
+if (Object.keys(workoutData).length === 0) {
+    workoutData = {
+        1: { media: [], memo: "" }
+    };
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('userNameInput').value = myUserName;
-    if (currentRoomCode) {
-        document.getElementById('roomCodeInput').value = currentRoomCode;
-        joinRoom();
-    }
     renderTabs();
     loadDayData(1);
 });
 
-function createNewRoom() {
-    const randomCode = 'ROOM' + Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('roomCodeInput').value = randomCode;
-    joinRoom();
-}
-
-function joinRoom() {
-    const roomInput = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-    const nameInput = document.getElementById('userNameInput').value.trim();
-
-    if (!roomInput) {
-        alert('방 번호를 입력해 주세요.');
-        return;
-    }
-    if (!nameInput) {
-        alert('본인의 닉네임을 입력해 주세요.');
-        return;
-    }
-
-    currentRoomCode = roomInput;
-    myUserName = nameInput;
-
-    localStorage.setItem('fitness_room_code', currentRoomCode);
-    localStorage.setItem('fitness_user_name', myUserName);
-
-    document.getElementById('roomStatusDisplay').innerHTML = `🟢 접속 방 번호: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> | 👤 닉네임: <b style="color:var(--accent-green);">${myUserName}</b>`;
-
-    fetchRoomData();
-    if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(fetchRoomData, 4000);
-}
-
-function leaveRoom() {
-    if (syncInterval) clearInterval(syncInterval);
-    currentRoomCode = '';
-    localStorage.removeItem('fitness_room_code');
-    document.getElementById('roomCodeInput').value = '';
-    document.getElementById('roomStatusDisplay').innerHTML = `🌐 상태: 오프라인 (개인 전용 모드)`;
-    document.getElementById('groupLogsContainer').innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px;">방에서 퇴장하였습니다.</div>`;
-}
-
-async function uploadLogToRoom() {
-    autoSaveMemo();
-    if (!currentRoomCode) {
-        alert('먼저 방 번호를 입력하거나 새 방을 생성하여 입장해 주세요.');
-        return;
-    }
-
-    const uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.disabled = true;
-    uploadBtn.innerText = "업로드 중...";
-
-    const dayData = myWorkoutData[activeDay] || { media: [], memo: "" };
-    const sanitizedUserKey = encodeURIComponent(myUserName).replace(/\./g, '%2E');
-
-    const payload = {
-        userName: myUserName,
-        memo: dayData.memo || "",
-        media: dayData.media || [],
-        updatedAt: new Date().toLocaleTimeString()
-    };
-
-    try {
-        const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/days/${activeDay}/${sanitizedUserKey}.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            alert(`${activeDay}일차 운동 일지가 [${currentRoomCode}] 방으로 공유되었습니다!`);
-            fetchRoomData();
-        } else {
-            const errText = await response.text();
-            alert(`업로드 실패 (${response.status}): ${errText}\n\nFirebase [규칙] 탭에서 .read, .write가 true로 설정되어 있는지 확인해주세요.`);
-        }
-    } catch (err) {
-        alert(`네트워크 연결 오류: ${err.message}`);
-    } finally {
-        uploadBtn.disabled = false;
-        uploadBtn.innerText = "방으로 일지 등록/공유 🚀";
-    }
-}
-
-async function fetchRoomData() {
-    if (!currentRoomCode) return;
-
-    try {
-        const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/days/${activeDay}.json`);
-        if (!response.ok) return;
-
-        const data = await response.json();
-        const logsContainer = document.getElementById('groupLogsContainer');
-        logsContainer.innerHTML = '';
-
-        if (!data) {
-            logsContainer.innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">아직 [${currentRoomCode}] 방의 ${activeDay}일차에 공유된 일지가 없습니다. [방으로 일지 등록/공유] 버튼을 눌러 첫 일지를 남겨보세요!</div>`;
-            return;
-        }
-
-        Object.keys(data).forEach(userKey => {
-            const userLog = data[userKey];
-            const card = document.createElement('div');
-            card.className = 'member-log-card';
-
-            let mediaHtml = '';
-            if (userLog.media && userLog.media.length > 0) {
-                mediaHtml = '<div class="media-preview-grid">';
-                userLog.media.forEach(m => {
-                    if (m.type === 'video') {
-                        mediaHtml += `<div class="media-card"><video src="${m.src}" controls></video></div>`;
-                    } else {
-                        mediaHtml += `<div class="media-card"><img src="${m.src}" onclick="window.open('${m.src}')"></div>`;
-                    }
-                });
-                mediaHtml += '</div>';
-            } else {
-                mediaHtml = '<div style="color:var(--text-sub); font-size:11px; margin-bottom:10px;">(등록된 사진/동영상 없음)</div>';
-            }
-
-            card.innerHTML = `
-                <div class="member-name-tag">
-                    👤 ${userLog.userName} <span style="font-size:11px; color:var(--text-sub); font-weight:normal;">(${userLog.updatedAt || '최근 작성'})</span>
-                </div>
-                ${mediaHtml}
-                <div style="background:var(--bg-dark); padding:10px; border-radius:6px; font-size:13px; white-space:pre-wrap; border:1px solid var(--border-color);">${userLog.memo || '메모가 없습니다.'}</div>
-            `;
-            logsContainer.appendChild(card);
-        });
-    } catch (e) {}
-}
-
-function compressImage(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const maxDimension = 800;
-
-            if (width > height) {
-                if (width > maxDimension) {
-                    height *= maxDimension / width;
-                    width = maxDimension;
-                }
-            } else {
-                if (height > maxDimension) {
-                    width *= maxDimension / height;
-                    height = maxDimension;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            callback(canvas.toDataURL('image/jpeg', 0.6));
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-function handleMediaUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
-
-    Array.from(files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-            compressImage(file, (compressedBase64) => {
-                myWorkoutData[activeDay].media.push({
-                    id: Date.now() + Math.random(),
-                    type: 'image',
-                    src: compressedBase64
-                });
-                saveToLocalStorage();
-                renderMediaList(myWorkoutData[activeDay].media);
-            });
-        } else {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                myWorkoutData[activeDay].media.push({
-                    id: Date.now() + Math.random(),
-                    type: 'video',
-                    src: e.target.result
-                });
-                saveToLocalStorage();
-                renderMediaList(myWorkoutData[activeDay].media);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-}
-
+// 탭 버튼 렌더링
 function renderTabs() {
     const tabsContainer = document.getElementById('dayTabsContainer');
     tabsContainer.innerHTML = '';
 
-    const days = Object.keys(myWorkoutData).map(Number).sort((a,b) => a - b);
+    const days = Object.keys(workoutData).map(Number).sort((a,b) => a - b);
     
     days.forEach(day => {
         const tab = document.createElement('button');
@@ -763,6 +568,7 @@ function renderTabs() {
         tabsContainer.appendChild(tab);
     });
 
+    // 일차 추가 버튼
     const addBtn = document.createElement('button');
     addBtn.className = 'add-day-btn';
     addBtn.innerText = '+ 일차 추가';
@@ -770,40 +576,67 @@ function renderTabs() {
     tabsContainer.appendChild(addBtn);
 }
 
+// 일차 전환
 function switchDay(day) {
     activeDay = day;
     renderTabs();
     loadDayData(day);
-    if (currentRoomCode) {
-        fetchRoomData();
-    }
 }
 
+// 새 일차 추가
 function addNewDay() {
-    const days = Object.keys(myWorkoutData).map(Number);
+    const days = Object.keys(workoutData).map(Number);
     const nextDay = days.length > 0 ? Math.max(...days) + 1 : 1;
-    myWorkoutData[nextDay] = { media: [], memo: "" };
-    saveToLocalStorage();
+    
+    workoutData[nextDay] = { media: [], memo: "" };
+    saveToStorage();
     switchDay(nextDay);
 }
 
+// 해당 일차 데이터 화면 출력
 function loadDayData(day) {
     document.getElementById('currentDayTitle').innerText = `${day}일차`;
-    document.getElementById('sharedDayTitle').innerText = `${day}일차`;
     document.getElementById('uploadDayLabel').innerText = `${day}일차`;
     document.getElementById('memoDayLabel').innerText = `${day}일차`;
 
-    const dayData = myWorkoutData[day] || { media: [], memo: "" };
+    const dayData = workoutData[day] || { media: [], memo: "" };
     document.getElementById('workoutMemo').value = dayData.memo || "";
+    
     renderMediaList(dayData.media);
 }
 
+// 미디어 파일 업로드 처리
+function handleMediaUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (!workoutData[activeDay]) {
+        workoutData[activeDay] = { media: [], memo: "" };
+    }
+
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fileData = {
+                id: Date.now() + Math.random(),
+                type: file.type.startsWith('video/') ? 'video' : 'image',
+                src: e.target.result
+            };
+            workoutData[activeDay].media.push(fileData);
+            saveToStorage();
+            renderMediaList(workoutData[activeDay].media);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// 해당 일차의 미디어 그리드 출력
 function renderMediaList(mediaList) {
     const grid = document.getElementById('mediaPreviewGrid');
     grid.innerHTML = '';
 
     if (!mediaList || mediaList.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 내 미디어가 없습니다.</div>';
+        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 미디어가 없습니다.</div>';
         return;
     }
 
@@ -811,56 +644,84 @@ function renderMediaList(mediaList) {
         const card = document.createElement('div');
         card.className = 'media-card';
 
-        let mediaElement = item.type === 'video' 
-            ? `<video src="${item.src}" controls></video>` 
-            : `<img src="${item.src}" onclick="window.open('${item.src}')">`;
+        let mediaElement = '';
+        if (item.type === 'video') {
+            mediaElement = `<video src="${item.src}" controls preload="metadata"></video>`;
+        } else {
+            mediaElement = `<img src="${item.src}" alt="증빙사진" onclick="window.open('${item.src}')">`;
+        }
 
-        card.innerHTML = `${mediaElement}<button class="delete-btn" onclick="deleteMedia(${item.id})">×</button>`;
+        card.innerHTML = `
+            ${mediaElement}
+            <button class="delete-btn" onclick="deleteMedia(${item.id})">×</button>
+        `;
         grid.appendChild(card);
     });
 }
 
+// 미디어 삭제
 function deleteMedia(id) {
-    if (myWorkoutData[activeDay]) {
-        myWorkoutData[activeDay].media = myWorkoutData[activeDay].media.filter(item => item.id !== id);
-        saveToLocalStorage();
-        renderMediaList(myWorkoutData[activeDay].media);
+    if (workoutData[activeDay]) {
+        workoutData[activeDay].media = workoutData[activeDay].media.filter(item => item.id !== id);
+        saveToStorage();
+        renderMediaList(workoutData[activeDay].media);
     }
 }
 
+// 메모 자동 및 수동 저장
 function autoSaveMemo() {
-    if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
-    myWorkoutData[activeDay].memo = document.getElementById('workoutMemo').value;
-    saveToLocalStorage();
+    if (!workoutData[activeDay]) workoutData[activeDay] = { media: [], memo: "" };
+    workoutData[activeDay].memo = document.getElementById('workoutMemo').value;
+    saveToStorage();
 }
 
+function saveMemoManual() {
+    autoSaveMemo();
+    alert(`${activeDay}일차 메모가 저장되었습니다.`);
+}
+
+// 현재 일차 삭제
 function deleteCurrentDay() {
-    if (confirm(`${activeDay}일차를 삭제하시겠습니까?`)) {
-        delete myWorkoutData[activeDay];
-        const remainingDays = Object.keys(myWorkoutData).map(Number);
-        activeDay = remainingDays.length > 0 ? Math.min(...remainingDays) : 1;
-        if (!myWorkoutData[activeDay]) myWorkoutData[1] = { media: [], memo: "" };
-        saveToLocalStorage();
+    if (confirm(`${activeDay}일차의 모든 사진, 동영상 및 메모를 삭제하시겠습니까?`)) {
+        delete workoutData[activeDay];
+        
+        const remainingDays = Object.keys(workoutData).map(Number);
+        if (remainingDays.length === 0) {
+            workoutData = { 1: { media: [], memo: "" } };
+            activeDay = 1;
+        } else {
+            activeDay = Math.min(...remainingDays);
+        }
+        
+        saveToStorage();
         renderTabs();
         loadDayData(activeDay);
     }
 }
 
-function saveToLocalStorage() {
+function saveToStorage() {
     try {
-        localStorage.setItem('fitness_my_workout_data', JSON.stringify(myWorkoutData));
-    } catch (e) {}
-}
-
-function shareApp() {
-    if (navigator.share) {
-        navigator.share({ title: '통합 체력 평가장', url: window.location.href });
-    } else {
-        navigator.clipboard.writeText(window.location.href);
-        alert('사이트 주소가 복사되었습니다!');
+        localStorage.setItem('fitness_workout_data', JSON.stringify(workoutData));
+    } catch (e) {
+        alert('브라우저 용량이 초과되었습니다. 고화질 미디어 파일 용량을 줄이거나 안 쓰는 사진을 정리해 주세요.');
     }
 }
 
+// Web Share API 공유
+function shareApp() {
+    if (navigator.share) {
+        navigator.share({
+            title: '통합 체력 평가 & 운동 기록장',
+            text: '체력 측정 및 일차별 운동 일지 앱입니다.',
+            url: window.location.href,
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('앱 주소(URL)가 복사되었습니다!');
+    }
+}
+
+// Strength Level 연령 보정 계수
 function getStrengthAgeFactor(age) {
     if (age < 18) return 0.90 + ((age - 14) * 0.025);
     if (age <= 34) return 1.00;
@@ -911,8 +772,10 @@ function calculateFitness() {
 
     if (age >= 25 && age <= 29) {
         ageGroupTitle = "만 25~29세";
+        acsmAgeGroupTitle = "만 20~29세";
         kneaReach = isMale ? [15.6, 11.8, 7.1] : [18.5, 14.5, 9.8];
         kneaShuttle = isMale ? [54, 44, 32] : [36, 27, 19];
+        acsmPushup = isMale ? [36, 29, 22, 17] : [30, 21, 15, 10];
     } else if (age >= 30 && age <= 39) {
         ageGroupTitle = "만 30~39세";
         acsmAgeGroupTitle = "만 30~39세";
