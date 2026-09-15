@@ -8,10 +8,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b132b">
     <title>통합 체력 평가 & 소셜 운동 공유 기록장</title>
-    
-    <!-- Firebase Cloud DB SDK 연동 -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         :root {
@@ -252,7 +248,7 @@
 
         .media-preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -460,7 +456,7 @@
         <div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
             <span style="font-size:22px;">📷 / 🎥</span><br>
             <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 업로드</span>
-            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(사진 선택 시 고속 전송을 위해 자동 압축되어 빠르게 게시됩니다)</div>
+            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 선택 시 공유 방의 모든 멤버들에게 게시됩니다)</div>
             <input type="file" id="mediaInput" accept="image/*, video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
         </div>
 
@@ -543,20 +539,15 @@
 </div>
 
 <script>
-// --- Firebase DB 초기화 (공용 서버 연결) ---
-const firebaseConfig = {
-    databaseURL: "https://fitness-app-room-default-rtdb.asia-southeast1.firebasedatabase.app"
-};
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.database();
+// --- Firebase REST API 연결 주소 ---
+const FIREBASE_DB_URL = "https://fitness-app-room-default-rtdb.asia-southeast1.firebasedatabase.app";
 
 // --- 상태 및 저장 변수 ---
 let currentRoomCode = localStorage.getItem('fitness_room_code') || '';
 let myUserName = localStorage.getItem('fitness_user_name') || '운동이_' + Math.floor(100 + Math.random()*900);
 let myWorkoutData = JSON.parse(localStorage.getItem('fitness_my_workout_data') || '{}');
 let activeDay = 1;
+let syncInterval = null;
 
 if (Object.keys(myWorkoutData).length === 0) {
     myWorkoutData = { 1: { media: [], memo: "" } };
@@ -600,15 +591,14 @@ function joinRoom() {
 
     document.getElementById('roomStatusDisplay').innerHTML = `🟢 접속 방 번호: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> | 👤 닉네임: <b style="color:var(--accent-green);">${myUserName}</b>`;
 
-    // 해당 방의 데이터 실시간 수신 리스너 등록
-    listenToRoomUpdates();
-    alert(`[${currentRoomCode}] 방에 성공적으로 연결되었습니다!`);
+    // 주기적 방 데이터 조회 실행
+    fetchRoomData();
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(fetchRoomData, 4000); // 4초 마다 실시간 동기화
 }
 
 function leaveRoom() {
-    if (currentRoomCode) {
-        db.ref('rooms/' + currentRoomCode).off();
-    }
+    if (syncInterval) clearInterval(syncInterval);
     currentRoomCode = '';
     localStorage.removeItem('fitness_room_code');
     document.getElementById('roomCodeInput').value = '';
@@ -616,8 +606,8 @@ function leaveRoom() {
     document.getElementById('groupLogsContainer').innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px;">방에서 퇴장하였습니다.</div>`;
 }
 
-// 방으로 내 운동일지 게시/업로드
-function uploadLogToRoom() {
+// 방으로 내 운동일지 게시/업로드 (REST API)
+async function uploadLogToRoom() {
     autoSaveMemo();
     if (!currentRoomCode) {
         alert('먼저 방 번호를 입력하거나 새 방을 생성하여 입장해 주세요.');
@@ -625,37 +615,53 @@ function uploadLogToRoom() {
     }
 
     const uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.innerText = "⏳ 업로드 중...";
     uploadBtn.disabled = true;
+    uploadBtn.innerText = "업로드 중...";
 
     const dayData = myWorkoutData[activeDay] || { media: [], memo: "" };
     const sanitizedUserKey = encodeURIComponent(myUserName).replace(/\./g, '%2E');
 
-    db.ref(`rooms/${currentRoomCode}/days/${activeDay}/${sanitizedUserKey}`).set({
+    const payload = {
         userName: myUserName,
         memo: dayData.memo || "",
         media: dayData.media || [],
         updatedAt: new Date().toLocaleTimeString()
-    }).then(() => {
-        uploadBtn.innerText = "방으로 일지 등록/공유 🚀";
+    };
+
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/days/${activeDay}/${sanitizedUserKey}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert(`${activeDay}일차 운동 일지가 [${currentRoomCode}] 방으로 공유되었습니다!`);
+            fetchRoomData();
+        } else {
+            const errText = await response.text();
+            alert(`업로드 실패 (${response.status}): ${errText}\n\nFirebase [규칙] 탭에서 .read, .write가 true로 설정되어 있는지 확인해주세요.`);
+        }
+    } catch (err) {
+        alert(`네트워크 연결 오류: ${err.message}`);
+    } finally {
         uploadBtn.disabled = false;
-        alert(`${activeDay}일차 운동 일지가 [${currentRoomCode}] 방으로 업로드되었습니다!`);
-    }).catch((err) => {
         uploadBtn.innerText = "방으로 일지 등록/공유 🚀";
-        uploadBtn.disabled = false;
-        alert('업로드 실패: 용량이 너무 큰 동영상 파일은 제외해 주시거나 사진을 다시 첨부해 주세요.');
-    });
+    }
 }
 
-// 실시간으로 그룹 멤버들의 기록 구독
-function listenToRoomUpdates() {
+// 방 데이터 수신
+async function fetchRoomData() {
     if (!currentRoomCode) return;
 
-    db.ref(`rooms/${currentRoomCode}/days/${activeDay}`).on('value', (snapshot) => {
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/days/${activeDay}.json`);
+        if (!response.ok) return;
+
+        const data = await response.json();
         const logsContainer = document.getElementById('groupLogsContainer');
         logsContainer.innerHTML = '';
 
-        const data = snapshot.val();
         if (!data) {
             logsContainer.innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">아직 [${currentRoomCode}] 방의 ${activeDay}일차에 공유된 일지가 없습니다. [방으로 일지 등록/공유] 버튼을 눌러 첫 일지를 남겨보세요!</div>`;
             return;
@@ -690,42 +696,29 @@ function listenToRoomUpdates() {
             `;
             logsContainer.appendChild(card);
         });
-    });
+    } catch (e) {}
 }
 
-// --- 이미지 자동 압축 변환 처리 ---
-function compressAndConvertImage(file, callback) {
-    if (file.type.startsWith('video/')) {
-        // 비디오 파일의 경우 용량 체크만 수행
-        if (file.size > 15 * 1024 * 1024) {
-            alert('15MB 이상의 대용량 동영상은 웹 공유 용량을 초과하여 첨부할 수 없습니다.');
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => callback({ id: Date.now() + Math.random(), type: 'video', src: e.target.result });
-        reader.readAsDataURL(file);
-        return;
-    }
-
+// --- 이미지 자동 압축 기능 ---
+function compressImage(file, callback) {
     const reader = new FileReader();
-    reader.onload = function (e) {
+    reader.onload = function(e) {
         const img = new Image();
-        img.onload = function () {
+        img.onload = function() {
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
+            const maxDimension = 800; // 최대 해상도 제한
 
-            // 최대 해상도를 1000px로 조정하여 용량 급감시킴
-            const max_size = 1000;
             if (width > height) {
-                if (width > max_size) {
-                    height *= max_size / width;
-                    width = max_size;
+                if (width > maxDimension) {
+                    height *= maxDimension / width;
+                    width = maxDimension;
                 }
             } else {
-                if (height > max_size) {
-                    width *= max_size / height;
-                    height = max_size;
+                if (height > maxDimension) {
+                    width *= maxDimension / height;
+                    height = maxDimension;
                 }
             }
 
@@ -733,10 +726,7 @@ function compressAndConvertImage(file, callback) {
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-
-            // JPEG 70% 품질 압축
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            callback({ id: Date.now() + Math.random(), type: 'image', src: compressedDataUrl });
+            callback(canvas.toDataURL('image/jpeg', 0.6)); // 압축률 60%
         };
         img.src = e.target.result;
     };
@@ -750,15 +740,33 @@ function handleMediaUpload(event) {
     if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
 
     Array.from(files).forEach(file => {
-        compressAndConvertImage(file, (mediaData) => {
-            myWorkoutData[activeDay].media.push(mediaData);
-            saveToLocalStorage();
-            renderMediaList(myWorkoutData[activeDay].media);
-        });
+        if (file.type.startsWith('image/')) {
+            compressImage(file, (compressedBase64) => {
+                myWorkoutData[activeDay].media.push({
+                    id: Date.now() + Math.random(),
+                    type: 'image',
+                    src: compressedBase64
+                });
+                saveToLocalStorage();
+                renderMediaList(myWorkoutData[activeDay].media);
+            });
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                myWorkoutData[activeDay].media.push({
+                    id: Date.now() + Math.random(),
+                    type: 'video',
+                    src: e.target.result
+                });
+                saveToLocalStorage();
+                renderMediaList(myWorkoutData[activeDay].media);
+            };
+            reader.readAsDataURL(file);
+        }
     });
 }
 
-// --- 일차 & 내 작성 UI ---
+// --- 일차 및 UI 연동 ---
 function renderTabs() {
     const tabsContainer = document.getElementById('dayTabsContainer');
     tabsContainer.innerHTML = '';
@@ -785,7 +793,7 @@ function switchDay(day) {
     renderTabs();
     loadDayData(day);
     if (currentRoomCode) {
-        listenToRoomUpdates();
+        fetchRoomData();
     }
 }
 
@@ -871,7 +879,7 @@ function shareApp() {
     }
 }
 
-// --- 체력 및 근력 분석 알고리즘 ---
+// --- 체력 분석 및 기준표 로직 ---
 function getStrengthAgeFactor(age) {
     if (age < 18) return 0.90 + ((age - 14) * 0.025);
     if (age <= 34) return 1.00;
