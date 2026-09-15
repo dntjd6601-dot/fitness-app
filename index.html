@@ -252,7 +252,7 @@
 
         .media-preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -460,7 +460,7 @@
         <div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
             <span style="font-size:22px;">📷 / 🎥</span><br>
             <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 업로드</span>
-            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 선택 시 공유 방의 모든 멤버들에게 게시됩니다)</div>
+            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(사진 선택 시 고속 전송을 위해 자동 압축되어 빠르게 게시됩니다)</div>
             <input type="file" id="mediaInput" accept="image/*, video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
         </div>
 
@@ -471,7 +471,7 @@
         
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
             <button class="btn-small btn-clear" onclick="deleteCurrentDay()">현재 일차 삭제</button>
-            <button class="btn-small btn-save" style="padding:10px 20px; font-size:14px;" onclick="uploadLogToRoom()">방으로 일지 등록/공유 🚀</button>
+            <button class="btn-small btn-save" id="uploadBtn" style="padding:10px 20px; font-size:14px;" onclick="uploadLogToRoom()">방으로 일지 등록/공유 🚀</button>
         </div>
     </div>
 
@@ -602,7 +602,7 @@ function joinRoom() {
 
     // 해당 방의 데이터 실시간 수신 리스너 등록
     listenToRoomUpdates();
-    alert(`[${currentRoomCode}] 방에 연결되었습니다!`);
+    alert(`[${currentRoomCode}] 방에 성공적으로 연결되었습니다!`);
 }
 
 function leaveRoom() {
@@ -624,9 +624,11 @@ function uploadLogToRoom() {
         return;
     }
 
-    const dayData = myWorkoutData[activeDay] || { media: [], memo: "" };
+    const uploadBtn = document.getElementById('uploadBtn');
+    uploadBtn.innerText = "⏳ 업로드 중...";
+    uploadBtn.disabled = true;
 
-    // DB 업로드 (특수문자 방지 및 인코딩)
+    const dayData = myWorkoutData[activeDay] || { media: [], memo: "" };
     const sanitizedUserKey = encodeURIComponent(myUserName).replace(/\./g, '%2E');
 
     db.ref(`rooms/${currentRoomCode}/days/${activeDay}/${sanitizedUserKey}`).set({
@@ -635,9 +637,13 @@ function uploadLogToRoom() {
         media: dayData.media || [],
         updatedAt: new Date().toLocaleTimeString()
     }).then(() => {
-        alert(`${activeDay}일차 운동 일지가 [${currentRoomCode}] 방으로 공유되었습니다!`);
+        uploadBtn.innerText = "방으로 일지 등록/공유 🚀";
+        uploadBtn.disabled = false;
+        alert(`${activeDay}일차 운동 일지가 [${currentRoomCode}] 방으로 업로드되었습니다!`);
     }).catch((err) => {
-        alert('공유 실패: 용량이 너무 큰 이미지/동영상은 제외해 주세요.');
+        uploadBtn.innerText = "방으로 일지 등록/공유 🚀";
+        uploadBtn.disabled = false;
+        alert('업로드 실패: 용량이 너무 큰 동영상 파일은 제외해 주시거나 사진을 다시 첨부해 주세요.');
     });
 }
 
@@ -683,6 +689,71 @@ function listenToRoomUpdates() {
                 <div style="background:var(--bg-dark); padding:10px; border-radius:6px; font-size:13px; white-space:pre-wrap; border:1px solid var(--border-color);">${userLog.memo || '메모가 없습니다.'}</div>
             `;
             logsContainer.appendChild(card);
+        });
+    });
+}
+
+// --- 이미지 자동 압축 변환 처리 ---
+function compressAndConvertImage(file, callback) {
+    if (file.type.startsWith('video/')) {
+        // 비디오 파일의 경우 용량 체크만 수행
+        if (file.size > 15 * 1024 * 1024) {
+            alert('15MB 이상의 대용량 동영상은 웹 공유 용량을 초과하여 첨부할 수 없습니다.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => callback({ id: Date.now() + Math.random(), type: 'video', src: e.target.result });
+        reader.readAsDataURL(file);
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // 최대 해상도를 1000px로 조정하여 용량 급감시킴
+            const max_size = 1000;
+            if (width > height) {
+                if (width > max_size) {
+                    height *= max_size / width;
+                    width = max_size;
+                }
+            } else {
+                if (height > max_size) {
+                    width *= max_size / height;
+                    height = max_size;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // JPEG 70% 품질 압축
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback({ id: Date.now() + Math.random(), type: 'image', src: compressedDataUrl });
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleMediaUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
+
+    Array.from(files).forEach(file => {
+        compressAndConvertImage(file, (mediaData) => {
+            myWorkoutData[activeDay].media.push(mediaData);
+            saveToLocalStorage();
+            renderMediaList(myWorkoutData[activeDay].media);
         });
     });
 }
@@ -735,28 +806,6 @@ function loadDayData(day) {
     const dayData = myWorkoutData[day] || { media: [], memo: "" };
     document.getElementById('workoutMemo').value = dayData.memo || "";
     renderMediaList(dayData.media);
-}
-
-function handleMediaUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
-
-    Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fileData = {
-                id: Date.now() + Math.random(),
-                type: file.type.startsWith('video/') ? 'video' : 'image',
-                src: e.target.result
-            };
-            myWorkoutData[activeDay].media.push(fileData);
-            saveToLocalStorage();
-            renderMediaList(myWorkoutData[activeDay].media);
-        };
-        reader.readAsDataURL(file);
-    });
 }
 
 function renderMediaList(mediaList) {
