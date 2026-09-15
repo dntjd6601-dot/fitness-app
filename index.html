@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA 및 모바일 앱 설정 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b132b">
@@ -84,7 +83,6 @@
             color: #000;
         }
 
-        /* 공유 방 및 닉네임 설정 영역 */
         .room-box {
             background: rgba(0, 240, 255, 0.05);
             border: 1px solid var(--accent-cyan);
@@ -189,7 +187,6 @@
             box-shadow: 0 4px 15px rgba(0, 255, 102, 0.3);
         }
 
-        /* 일차별 탭 스타일 */
         .day-tabs-container {
             display: flex;
             gap: 8px;
@@ -312,7 +309,6 @@
         .btn-clear { background: #ff4d4d; color: #fff; }
         .btn-sync { background: var(--accent-cyan); color: #000; }
 
-        /* 그룹 공유 일지 카드 레이아웃 */
         .group-logs-container {
             display: flex;
             flex-direction: column;
@@ -367,7 +363,6 @@
         <button class="share-btn" onclick="shareApp()">🔗 주소 공유하기</button>
     </div>
 
-    <!-- 🌐 방 번호 & 닉네임 공유 설정 -->
     <div class="room-box">
         <div style="font-weight:bold; color:var(--accent-cyan); font-size:15px;">
             👥 실시간 운동 공유 방 (Group Sync)
@@ -389,7 +384,6 @@
         </div>
     </div>
 
-    <!-- 1. 프로필 입력 -->
     <div class="section-title">USER PROFILE (성별, 연령, 신체 지표)</div>
     <div class="grid">
         <div class="input-group">
@@ -413,7 +407,6 @@
         </div>
     </div>
 
-    <!-- 2. 측정치 입력 -->
     <div class="section-title">ATHLETIC METRICS (근력 1RM & 체력 측정값)</div>
     <div class="grid">
         <div class="input-group"><label>스쿼트 (kg)</label><input type="number" id="squat" value="110" oninput="calculateFitness()"></div>
@@ -428,7 +421,6 @@
 
     <button class="action-btn" onclick="calculateFitness()">ANALYZE PERFORMANCE (분석 갱신)</button>
 
-    <!-- 3. 개인 평가 결과 -->
     <h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-sub);">(<span id="currentProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
     <div class="table-responsive">
         <table>
@@ -445,7 +437,6 @@
         </table>
     </div>
 
-    <!-- 4. 일차별 운동 기록 작성 -->
     <h2>일차별 운동 일지 작성 및 내 미디어 등록</h2>
     
     <div id="dayTabsContainer" class="day-tabs-container"></div>
@@ -471,7 +462,6 @@
         </div>
     </div>
 
-    <!-- 👥 그룹 공유 일지 표시 영역 -->
     <h2>👥 방 멤버 전체 공유 일지 (<span id="sharedDayTitle" style="color:var(--accent-cyan);">1일차</span>)</h2>
     <div id="groupLogsContainer" class="group-logs-container">
         <div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">
@@ -479,7 +469,6 @@
         </div>
     </div>
 
-    <!-- 5. 참조 등급표 -->
     <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub);">(<span id="refProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
     
     <div class="section-title">국민체력100 - <span id="kneaProfileTitle">남성 만 40~49세</span></div>
@@ -539,10 +528,9 @@
 </div>
 
 <script>
-// --- Firebase REST API 연결 주소 ---
-const FIREBASE_DB_URL = "https://https://console.firebase.google.com/u/2/project/fitness-6a8e0/database/fitness-6a8e0-default-rtdb/data/~2F-default-rtdb.asia-southeast1.firebasedatabase.app";
+// --- 수정된 본인 프로젝트 Firebase REST API 연결 주소 ---
+const FIREBASE_DB_URL = "https://fitness-6a8e0-default-rtdb.firebaseio.com";
 
-// --- 상태 및 저장 변수 ---
 let currentRoomCode = localStorage.getItem('fitness_room_code') || '';
 let myUserName = localStorage.getItem('fitness_user_name') || '운동이_' + Math.floor(100 + Math.random()*900);
 let myWorkoutData = JSON.parse(localStorage.getItem('fitness_my_workout_data') || '{}');
@@ -563,7 +551,6 @@ window.addEventListener('DOMContentLoaded', () => {
     loadDayData(1);
 });
 
-// --- 공유 방 관리 함수 ---
 function createNewRoom() {
     const randomCode = 'ROOM' + Math.floor(1000 + Math.random() * 9000);
     document.getElementById('roomCodeInput').value = randomCode;
@@ -591,10 +578,9 @@ function joinRoom() {
 
     document.getElementById('roomStatusDisplay').innerHTML = `🟢 접속 방 번호: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> | 👤 닉네임: <b style="color:var(--accent-green);">${myUserName}</b>`;
 
-    // 주기적 방 데이터 조회 실행
     fetchRoomData();
     if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(fetchRoomData, 4000); // 4초 마다 실시간 동기화
+    syncInterval = setInterval(fetchRoomData, 4000);
 }
 
 function leaveRoom() {
@@ -606,7 +592,6 @@ function leaveRoom() {
     document.getElementById('groupLogsContainer').innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px;">방에서 퇴장하였습니다.</div>`;
 }
 
-// 방으로 내 운동일지 게시/업로드 (REST API)
 async function uploadLogToRoom() {
     autoSaveMemo();
     if (!currentRoomCode) {
@@ -650,7 +635,6 @@ async function uploadLogToRoom() {
     }
 }
 
-// 방 데이터 수신
 async function fetchRoomData() {
     if (!currentRoomCode) return;
 
@@ -699,7 +683,6 @@ async function fetchRoomData() {
     } catch (e) {}
 }
 
-// --- 이미지 자동 압축 기능 ---
 function compressImage(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -708,7 +691,7 @@ function compressImage(file, callback) {
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-            const maxDimension = 800; // 최대 해상도 제한
+            const maxDimension = 800;
 
             if (width > height) {
                 if (width > maxDimension) {
@@ -726,7 +709,7 @@ function compressImage(file, callback) {
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            callback(canvas.toDataURL('image/jpeg', 0.6)); // 압축률 60%
+            callback(canvas.toDataURL('image/jpeg', 0.6));
         };
         img.src = e.target.result;
     };
@@ -766,7 +749,6 @@ function handleMediaUpload(event) {
     });
 }
 
-// --- 일차 및 UI 연동 ---
 function renderTabs() {
     const tabsContainer = document.getElementById('dayTabsContainer');
     tabsContainer.innerHTML = '';
@@ -879,7 +861,6 @@ function shareApp() {
     }
 }
 
-// --- 체력 분석 및 기준표 로직 ---
 function getStrengthAgeFactor(age) {
     if (age < 18) return 0.90 + ((age - 14) * 0.025);
     if (age <= 34) return 1.00;
