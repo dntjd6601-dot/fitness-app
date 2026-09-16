@@ -1,20 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- PWA 및 모바일 앱 설정 -->
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0b132b">
-    <title>통합 체력 평가 & 일차별 운동 기록장</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b132b">
     <title>통합 체력 평가 & 소셜 운동 공유 기록장</title>
 
-<style>
-:root {
---bg-dark: #0b132b;
-@@ -83,6 +83,40 @@
-color: #000;
-}
+    <style>
+        :root {
+            --bg-dark: #0b132b;
+            --card-bg: #1c2541;
+            --card-inner-bg: #0f172a;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent-green: #00ff66;
+            --accent-cyan: #00f0ff;
+            --accent-orange: #ff9900;
+            --accent-purple: #a855f7;
+            --border-color: #334155;
+            --highlight-border: #00ff66;
+            --highlight-bg: rgba(0, 255, 102, 0.15);
+        }
 
+        body { 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main);
+            margin: 0; 
+            padding: 20px 10px; 
+            -webkit-user-select: none;
+        }
+
+        .container { 
+            max-width: 1050px; 
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            padding: 25px 20px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
+            border: 1px solid var(--border-color);
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        h1 { 
+            color: var(--text-main); 
+            font-size: 22px; 
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h1::before { content: "❚"; color: var(--accent-green); }
+
+        .share-btn {
+            background: var(--card-inner-bg);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .share-btn:hover {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        /* 공유 방 및 닉네임 설정 영역 */
         .room-box {
             background: rgba(0, 240, 255, 0.05);
             border: 1px solid var(--accent-cyan);
@@ -49,129 +119,214 @@ color: #000;
             margin-top: 10px;
         }
 
-h2 { 
-color: var(--accent-cyan); 
-font-size: 18px; 
-@@ -153,12 +187,6 @@
-box-shadow: 0 4px 15px rgba(0, 255, 102, 0.3);
-}
-
-        .action-btn:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 255, 102, 0.5);
+        h2 { 
+            color: var(--accent-cyan); 
+            font-size: 18px; 
+            margin-top: 35px; 
+            margin-bottom: 15px; 
         }
 
-        /* 일차별 탭 전용 스타일 */
-.day-tabs-container {
-display: flex;
-gap: 8px;
-@@ -178,7 +206,6 @@
-font-weight: bold;
-cursor: pointer;
-white-space: nowrap;
-            transition: all 0.2s;
-}
-
-.day-tab.active {
-@@ -196,7 +223,6 @@
-font-size: 13px;
-font-weight: bold;
-cursor: pointer;
-            white-space: nowrap;
-}
-
-.workout-plan-box {
-@@ -215,16 +241,11 @@
-background: rgba(0, 240, 255, 0.03);
-cursor: pointer;
-margin-bottom: 20px;
-            transition: background 0.2s;
+        .section-title { 
+            font-weight: 700; 
+            font-size: 13px; 
+            color: var(--accent-green); 
+            margin: 18px 0 10px 0; 
+            letter-spacing: 0.5px;
         }
 
-        .file-upload-wrapper:hover {
-            background: rgba(0, 240, 255, 0.08);
-}
+        .section-title::before { content: "▶ "; font-size: 10px; }
 
-.media-preview-grid {
-display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-gap: 12px;
-margin-bottom: 20px;
-}
-@@ -259,14 +280,11 @@
-height: 24px;
-font-weight: bold;
-cursor: pointer;
-            line-height: 24px;
-            text-align: center;
-            font-size: 13px;
-}
-
-.workout-memo {
-width: 100%;
-            min-height: 100px;
-            min-height: 90px;
-background: var(--bg-dark);
-border: 1px solid var(--border-color);
-border-radius: 8px;
-@@ -276,18 +294,6 @@
-line-height: 1.5;
-resize: vertical;
-box-sizing: border-box;
-            font-family: inherit;
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 10px; 
+            margin-bottom: 15px; 
         }
 
-        .workout-memo:focus {
-            border-color: var(--accent-green);
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--card-inner-bg);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
 
-        .memo-actions {
+        label { 
+            font-weight: 600; 
+            margin-bottom: 4px; 
+            color: var(--text-sub); 
+            font-size: 11px; 
+        }
+
+        input, select, textarea { 
+            background: transparent;
+            border: none;
+            color: var(--accent-green);
+            font-size: 15px; 
+            font-weight: bold;
+            outline: none;
+            width: 100%;
+        }
+
+        select option {
+            background-color: var(--card-inner-bg);
+            color: var(--text-main);
+        }
+
+        .action-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: linear-gradient(135deg, #00ff66 0%, #00b843 100%);
+            color: #000; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            margin-top: 15px; 
+            box-shadow: 0 4px 15px rgba(0, 255, 102, 0.3);
+        }
+
+        /* 일차별 탭 스타일 */
+        .day-tabs-container {
             display: flex;
-            justify-content: space-between;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .day-tab {
+            padding: 8px 16px;
+            background: var(--card-inner-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-sub);
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .day-tab.active {
+            background: var(--accent-cyan);
+            color: #000;
+            border-color: var(--accent-cyan);
+        }
+
+        .add-day-btn {
+            padding: 8px 14px;
+            background: transparent;
+            border: 1px dashed var(--accent-green);
+            border-radius: 20px;
+            color: var(--accent-green);
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .workout-plan-box {
+            background: var(--card-inner-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .file-upload-wrapper {
+            border: 2px dashed var(--accent-cyan);
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+            background: rgba(0, 240, 255, 0.03);
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .media-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .media-card {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            aspect-ratio: 4 / 3;
+            display: flex;
             align-items: center;
-            margin-top: 12px;
-}
+            justify-content: center;
+        }
 
-.btn-small {
-@@ -301,99 +307,83 @@
+        .media-card img, .media-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-.btn-save { background: var(--accent-green); color: #000; }
-.btn-clear { background: #ff4d4d; color: #fff; }
+        .media-card .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .workout-memo {
+            width: 100%;
+            min-height: 90px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .btn-small {
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-save { background: var(--accent-green); color: #000; }
+        .btn-clear { background: #ff4d4d; color: #fff; }
         .btn-sync { background: var(--accent-cyan); color: #000; }
 
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+        /* 그룹 공유 일지 카드 레이아웃 */
         .group-logs-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
             margin-top: 15px;
-}
+        }
 
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 10px; 
         .member-log-card {
-background: var(--card-inner-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            min-width: 600px;
+            background: var(--card-inner-bg);
             border: 1px solid var(--accent-purple);
             border-radius: 10px;
             padding: 15px;
-}
+        }
 
-        th, td { 
-            border: 1px solid var(--border-color); 
-            padding: 10px 8px; 
-            text-align: center; 
-            font-size: 12px; 
-            transition: all 0.2s ease; 
-            color: var(--text-main);
         .member-name-tag {
             font-weight: bold;
             color: var(--accent-purple);
@@ -180,80 +335,39 @@ background: var(--card-inner-bg);
             display: flex;
             align-items: center;
             gap: 6px;
-}
-
-        th { 
-            background-color: #1e293b; 
-            color: var(--text-sub); 
-            font-weight: 700;
         }
+
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: var(--card-inner-bg); border-radius: 8px; overflow: hidden; min-width: 600px; }
         th, td { border: 1px solid var(--border-color); padding: 10px 8px; text-align: center; font-size: 12px; color: var(--text-main); }
         th { background-color: #1e293b; color: var(--text-sub); }
 
-        .badge { 
-            padding: 4px 8px; 
-            border-radius: 20px; 
-            font-weight: bold; 
-            color: #000; 
-            display: inline-block; 
-            font-size: 10px; 
-        }
         .badge { padding: 4px 8px; border-radius: 20px; font-weight: bold; color: #000; display: inline-block; font-size: 10px; }
-.excellent { background-color: var(--accent-green); }
-.good { background-color: var(--accent-cyan); }
-.average { background-color: var(--accent-orange); }
-.poor { background-color: #ff4d4d; color: #fff; }
-.elite { background-color: var(--accent-purple); color: #fff; }
+        .excellent { background-color: var(--accent-green); }
+        .good { background-color: var(--accent-cyan); }
+        .average { background-color: var(--accent-orange); }
+        .poor { background-color: #ff4d4d; color: #fff; }
+        .elite { background-color: var(--accent-purple); color: #fff; }
 
-        .source-tag { 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            font-size: 10px; 
-            font-weight: bold; 
-            color: #fff; 
-            display: inline-block; 
-        }
         .source-tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: #fff; }
-.src-korea { background-color: #3b82f6; }
-.src-strength { background-color: #8b5cf6; }
-.src-acsm { background-color: #f97316; }
-.src-fms { background-color: #14b8a6; }
+        .src-korea { background-color: #3b82f6; }
+        .src-strength { background-color: #8b5cf6; }
+        .src-acsm { background-color: #f97316; }
+        .src-fms { background-color: #14b8a6; }
 
-        .ref-table { margin-bottom: 20px; }
-.highlight-text { color: var(--accent-green); font-weight: bold; }
-
-        .highlight-cell {
-            border: 2px solid var(--highlight-border) !important;
-            background-color: var(--highlight-bg) !important;
-            font-weight: bold !important;
-            color: var(--accent-green) !important;
-        }
-
-        .info-box {
-            background: var(--card-inner-bg);
-            border-left: 4px solid var(--accent-cyan);
-            padding: 10px 14px;
-            margin-bottom: 15px;
-            font-size: 12px;
-            color: var(--text-sub);
-            line-height: 1.4;
-        }
+        .highlight-text { color: var(--accent-green); font-weight: bold; }
         .highlight-cell { border: 2px solid var(--highlight-border) !important; background-color: var(--highlight-bg) !important; font-weight: bold !important; color: var(--accent-green) !important; }
-</style>
+    </style>
 </head>
 <body>
 
 <div class="container">
-<div class="header-bar">
-<h1>TOTAL FITNESS LAB</h1>
-        <button class="share-btn" onclick="shareApp()">🔗 앱 공유하기</button>
+    <div class="header-bar">
+        <h1>TOTAL FITNESS LAB</h1>
         <button class="share-btn" onclick="shareApp()">🔗 주소 공유하기</button>
-</div>
+    </div>
 
-    <div class="info-box">
-        <b>💡 이용 안내:</b> 탭을 눌러 <b>1일차, 2일차 등 날짜/회차별로 사진, 동영상 및 메모를 독립적으로 분리하여 관리</b>할 수 있습니다.
+    <!-- 🌐 방 번호 & 닉네임 공유 설정 -->
     <div class="room-box">
         <div style="font-weight:bold; color:var(--accent-cyan); font-size:15px;">
             👥 실시간 운동 공유 방 (Group Sync)
@@ -273,101 +387,168 @@ background: var(--card-inner-bg);
         <div class="room-status" id="roomStatusDisplay">
             🌐 상태: 오프라인 (개인 전용 모드)
         </div>
-</div>
-    
-    <!-- 1. 프로필 입력 -->
+    </div>
 
-<div class="section-title">USER PROFILE (성별, 연령, 신체 지표)</div>
-<div class="grid">
-<div class="input-group">
-@@ -417,7 +407,6 @@ <h1>TOTAL FITNESS LAB</h1>
-</div>
-</div>
+    <!-- 1. 프로필 입력 -->
+    <div class="section-title">USER PROFILE (성별, 연령, 신체 지표)</div>
+    <div class="grid">
+        <div class="input-group">
+            <label>성별 선택</label>
+            <select id="gender" onchange="calculateFitness()">
+                <option value="male" selected>남성 (Male)</option>
+                <option value="female">여성 (Female)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>만 나이 (세)</label>
+            <input type="number" id="age" value="42" oninput="calculateFitness()">
+        </div>
+        <div class="input-group">
+            <label>체중 (kg)</label>
+            <input type="number" id="weight" value="75" step="0.1" oninput="calculateFitness()">
+        </div>
+        <div class="input-group">
+            <label>신장 (cm)</label>
+            <input type="number" id="height" value="175" step="0.1" oninput="calculateFitness()">
+        </div>
+    </div>
 
     <!-- 2. 측정치 입력 -->
-<div class="section-title">ATHLETIC METRICS (근력 1RM & 체력 측정값)</div>
-<div class="grid">
-<div class="input-group"><label>스쿼트 (kg)</label><input type="number" id="squat" value="110" oninput="calculateFitness()"></div>
-@@ -432,7 +421,6 @@ <h1>TOTAL FITNESS LAB</h1>
+    <div class="section-title">ATHLETIC METRICS (근력 1RM & 체력 측정값)</div>
+    <div class="grid">
+        <div class="input-group"><label>스쿼트 (kg)</label><input type="number" id="squat" value="110" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>벤치프레스 (kg)</label><input type="number" id="bench" value="80" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>데드리프트 (kg)</label><input type="number" id="dead" value="140" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>레그프레스 (kg)</label><input type="number" id="legpress" value="160" oninput="calculateFitness()"></div>
+        <div class="input-group"><label id="pushupLabel">팔굽혀펴기 (회)</label><input type="number" id="pushup" value="28" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>앉아앞으로굽히기 (cm)</label><input type="number" id="reach" value="12.0" step="0.1" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>어깨 가동성 (간격 cm)</label><input type="number" id="shoulder" value="11.0" step="0.1" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>20m 셔틀런 (회)</label><input type="number" id="shuttle" value="45" oninput="calculateFitness()"></div>
+    </div>
 
-<button class="action-btn" onclick="calculateFitness()">ANALYZE PERFORMANCE (분석 갱신)</button>
+    <button class="action-btn" onclick="calculateFitness()">ANALYZE PERFORMANCE (분석 갱신)</button>
 
     <!-- 3. 개인 평가 결과 -->
-<h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-sub);">(<span id="currentProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
-<div class="table-responsive">
-<table>
-@@ -449,35 +437,38 @@ <h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-su
-</table>
-</div>
+    <h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-sub);">(<span id="currentProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>기관</th>
+                    <th>측정 항목</th>
+                    <th>사용자 기록</th>
+                    <th>성별·연령·체중 보정 기준</th>
+                    <th>최종 등급</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+        </table>
+    </div>
 
-    <!-- 4. 일차별 증빙 미디어 & 메모장 (개편 섹션) -->
-    <h2>일차별 운동 일지 (WORKOUT LOG)</h2>
+    <!-- 4. 일차별 운동 기록 작성 -->
     <h2>일차별 운동 일지 작성 및 내 미디어 등록</h2>
+    
+    <div id="dayTabsContainer" class="day-tabs-container"></div>
 
-    <!-- 일차 선택 탭 목록 -->
-<div id="dayTabsContainer" class="day-tabs-container"></div>
-
-<div class="workout-plan-box">
-        <div class="section-title"><span id="currentDayTitle" style="color:var(--accent-cyan);">1일차</span> 미디어 업로드</div>
+    <div class="workout-plan-box">
         <div class="section-title"><span id="currentDayTitle" style="color:var(--accent-cyan);">1일차</span> 내 증빙 파일 첨부</div>
-
-<div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
-<span style="font-size:22px;">📷 / 🎥</span><br>
-            <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 선택</span>
-            <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 파일을 추가하면 해당 일차에 즉시 보입니다)</div>
+        
+        <div class="file-upload-wrapper" onclick="document.getElementById('mediaInput').click()">
+            <span style="font-size:22px;">📷 / 🎥</span><br>
             <span style="font-size:13px; color:var(--accent-cyan); font-weight:bold;"><span id="uploadDayLabel">1일차</span> 사진 및 동영상 업로드</span>
             <div style="font-size:11px; color:var(--text-sub); margin-top:3px;">(클릭하여 선택 시 공유 방의 모든 멤버들에게 게시됩니다)</div>
-<input type="file" id="mediaInput" accept="image/*, video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
-</div>
+            <input type="file" id="mediaInput" accept="image/*, video/*" multiple style="display:none;" onchange="handleMediaUpload(event)">
+        </div>
 
-        <!-- 선택된 일차의 미디어 미리보기 -->
-<div id="mediaPreviewGrid" class="media-preview-grid"></div>
+        <div id="mediaPreviewGrid" class="media-preview-grid"></div>
 
-        <div class="section-title"><span id="memoDayLabel" style="color:var(--accent-cyan);">1일차</span> 운동 메모</div>
-        <textarea id="workoutMemo" class="workout-memo" oninput="autoSaveMemo()" placeholder="예) 스쿼트 100kg 5세트 완료. 포즈 자세 촬영 완료."></textarea>
         <div class="section-title"><span id="memoDayLabel" style="color:var(--accent-cyan);">1일차</span> 내 운동 메모</div>
         <textarea id="workoutMemo" class="workout-memo" oninput="autoSaveMemo()" placeholder="예) 스쿼트 100kg 완료. 방 멤버들 파이팅!"></textarea>
-
-        <div class="memo-actions">
-            <button class="btn-small btn-clear" onclick="deleteCurrentDay()">현재 일차 전체 삭제</button>
-            <button class="btn-small btn-save" onclick="saveMemoManual()">메모 저장</button>
+        
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
             <button class="btn-small btn-clear" onclick="deleteCurrentDay()">현재 일차 삭제</button>
             <button class="btn-small btn-save" id="uploadBtn" style="padding:10px 20px; font-size:14px;" onclick="uploadLogToRoom()">방으로 일지 등록/공유 🚀</button>
         </div>
     </div>
 
+    <!-- 👥 그룹 공유 일지 표시 영역 -->
     <h2>👥 방 멤버 전체 공유 일지 (<span id="sharedDayTitle" style="color:var(--accent-cyan);">1일차</span>)</h2>
     <div id="groupLogsContainer" class="group-logs-container">
         <div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">
             방 번호를 입력하거나 새 방을 만든 후 [방으로 일지 등록/공유]를 누르면 여기에 멤버들의 일지가 함께 열람됩니다.
-</div>
-</div>
+        </div>
+    </div>
 
     <!-- 5. 참조 등급표 -->
-<h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub);">(<span id="refProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
+    <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub);">(<span id="refProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
+    
+    <div class="section-title">국민체력100 - <span id="kneaProfileTitle">남성 만 40~49세</span></div>
+    <div class="table-responsive">
+        <table class="ref-table">
+            <thead>
+                <tr>
+                    <th>측정 항목</th>
+                    <th>1등급 (최우수)</th>
+                    <th>2등급 (우수)</th>
+                    <th>3등급 (보통)</th>
+                    <th>등외 (참가상)</th>
+                </tr>
+            </thead>
+            <tbody id="kneaTableBody"></tbody>
+        </table>
+    </div>
 
-<div class="section-title">국민체력100 - <span id="kneaProfileTitle">남성 만 40~49세</span></div>
-@@ -537,28 +528,232 @@ <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub
+    <div class="section-title">Strength Level (연령 보정 계수 <span id="ageFactorDisplay" class="highlight-text">0.93</span> 적용 <span id="strengthGenderTitle">남성 75kg</span>)</div>
+    <div class="table-responsive">
+        <table class="ref-table">
+            <thead>
+                <tr>
+                    <th>종목</th>
+                    <th>Beginner (입문)</th>
+                    <th>Novice (초급)</th>
+                    <th>Intermediate (중급)</th>
+                    <th>Advanced (상급)</th>
+                    <th>Elite (최상급)</th>
+                </tr>
+            </thead>
+            <tbody id="strengthTableBody">
+                <tr id="row-squat"><td><b>스쿼트</b></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr id="row-bench"><td><b>벤치프레스</b></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr id="row-dead"><td><b>데드리프트</b></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr id="row-legpress"><td><b>레그프레스</b></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">ACSM & FMS 기준표 - <span id="acsmProfileTitle">남성 만 40~49세</span></div>
+    <div class="table-responsive">
+        <table class="ref-table">
+            <thead>
+                <tr>
+                    <th>출처</th>
+                    <th>측정 항목</th>
+                    <th>1등급 / 3점</th>
+                    <th>2등급 / 2점</th>
+                    <th>3등급 / 1점</th>
+                    <th>4~5등급 / 0점</th>
+                </tr>
+            </thead>
+            <tbody id="acsmFmsTableBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-// --- 일차별 메인 데이터 관리 스크립트 ---
-let workoutData = JSON.parse(localStorage.getItem('fitness_workout_data') || '{}');
-// --- 수정된 본인 프로젝트 Firebase REST API 연결 주소 ---
+// --- Firebase REST API 연결 주소 ---
 const FIREBASE_DB_URL = "https://fitness-6a8e0-default-rtdb.asia-southeast1.firebasedatabase.app";
 
+// --- 상태 및 저장 변수 ---
 let currentRoomCode = localStorage.getItem('fitness_room_code') || '';
 let myUserName = localStorage.getItem('fitness_user_name') || '운동이_' + Math.floor(100 + Math.random()*900);
 let myWorkoutData = JSON.parse(localStorage.getItem('fitness_my_workout_data') || '{}');
 let activeDay = 1;
 let syncInterval = null;
 
-// 초기 데이터 구조 생성
-if (Object.keys(workoutData).length === 0) {
-    workoutData = {
-        1: { media: [], memo: "" }
-    };
 if (Object.keys(myWorkoutData).length === 0) {
     myWorkoutData = { 1: { media: [], memo: "" } };
 }
@@ -378,11 +559,11 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('roomCodeInput').value = currentRoomCode;
         joinRoom();
     }
-renderTabs();
-loadDayData(1);
+    renderTabs();
+    loadDayData(1);
 });
 
-// 탭 버튼 렌더링
+// --- 공유 방 관리 함수 ---
 function createNewRoom() {
     const randomCode = 'ROOM' + Math.floor(1000 + Math.random() * 9000);
     document.getElementById('roomCodeInput').value = randomCode;
@@ -410,9 +591,10 @@ function joinRoom() {
 
     document.getElementById('roomStatusDisplay').innerHTML = `🟢 접속 방 번호: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> | 👤 닉네임: <b style="color:var(--accent-green);">${myUserName}</b>`;
 
+    // 주기적 방 데이터 조회 실행
     fetchRoomData();
     if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(fetchRoomData, 4000);
+    syncInterval = setInterval(fetchRoomData, 4000); // 4초 마다 실시간 동기화
 }
 
 function leaveRoom() {
@@ -424,6 +606,7 @@ function leaveRoom() {
     document.getElementById('groupLogsContainer').innerHTML = `<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px;">방에서 퇴장하였습니다.</div>`;
 }
 
+// 방으로 내 운동일지 게시/업로드 (REST API)
 async function uploadLogToRoom() {
     autoSaveMemo();
     if (!currentRoomCode) {
@@ -467,6 +650,7 @@ async function uploadLogToRoom() {
     }
 }
 
+// 방 데이터 수신
 async function fetchRoomData() {
     if (!currentRoomCode) return;
 
@@ -515,6 +699,7 @@ async function fetchRoomData() {
     } catch (e) {}
 }
 
+// --- 이미지 자동 압축 기능 ---
 function compressImage(file, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -523,7 +708,7 @@ function compressImage(file, callback) {
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-            const maxDimension = 800;
+            const maxDimension = 800; // 최대 해상도 제한
 
             if (width > height) {
                 if (width > maxDimension) {
@@ -541,7 +726,7 @@ function compressImage(file, callback) {
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            callback(canvas.toDataURL('image/jpeg', 0.6));
+            callback(canvas.toDataURL('image/jpeg', 0.6)); // 압축률 60%
         };
         img.src = e.target.result;
     };
@@ -581,215 +766,320 @@ function handleMediaUpload(event) {
     });
 }
 
+// --- 일차 및 UI 연동 ---
 function renderTabs() {
-const tabsContainer = document.getElementById('dayTabsContainer');
-tabsContainer.innerHTML = '';
+    const tabsContainer = document.getElementById('dayTabsContainer');
+    tabsContainer.innerHTML = '';
 
-    const days = Object.keys(workoutData).map(Number).sort((a,b) => a - b);
     const days = Object.keys(myWorkoutData).map(Number).sort((a,b) => a - b);
+    
+    days.forEach(day => {
+        const tab = document.createElement('button');
+        tab.className = `day-tab ${day === activeDay ? 'active' : ''}`;
+        tab.innerText = `${day}일차`;
+        tab.onclick = () => switchDay(day);
+        tabsContainer.appendChild(tab);
+    });
 
-days.forEach(day => {
-const tab = document.createElement('button');
-@@ -568,160 +763,104 @@ <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub
-tabsContainer.appendChild(tab);
-});
-
-    // 일차 추가 버튼
-const addBtn = document.createElement('button');
-addBtn.className = 'add-day-btn';
-addBtn.innerText = '+ 일차 추가';
-addBtn.onclick = addNewDay;
-tabsContainer.appendChild(addBtn);
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-day-btn';
+    addBtn.innerText = '+ 일차 추가';
+    addBtn.onclick = addNewDay;
+    tabsContainer.appendChild(addBtn);
 }
 
-// 일차 전환
 function switchDay(day) {
-activeDay = day;
-renderTabs();
-loadDayData(day);
+    activeDay = day;
+    renderTabs();
+    loadDayData(day);
     if (currentRoomCode) {
         fetchRoomData();
     }
 }
 
-// 새 일차 추가
 function addNewDay() {
-    const days = Object.keys(workoutData).map(Number);
     const days = Object.keys(myWorkoutData).map(Number);
-const nextDay = days.length > 0 ? Math.max(...days) + 1 : 1;
-    
-    workoutData[nextDay] = { media: [], memo: "" };
-    saveToStorage();
+    const nextDay = days.length > 0 ? Math.max(...days) + 1 : 1;
     myWorkoutData[nextDay] = { media: [], memo: "" };
     saveToLocalStorage();
-switchDay(nextDay);
+    switchDay(nextDay);
 }
 
-// 해당 일차 데이터 화면 출력
 function loadDayData(day) {
-document.getElementById('currentDayTitle').innerText = `${day}일차`;
+    document.getElementById('currentDayTitle').innerText = `${day}일차`;
     document.getElementById('sharedDayTitle').innerText = `${day}일차`;
-document.getElementById('uploadDayLabel').innerText = `${day}일차`;
-document.getElementById('memoDayLabel').innerText = `${day}일차`;
+    document.getElementById('uploadDayLabel').innerText = `${day}일차`;
+    document.getElementById('memoDayLabel').innerText = `${day}일차`;
 
-    const dayData = workoutData[day] || { media: [], memo: "" };
     const dayData = myWorkoutData[day] || { media: [], memo: "" };
-document.getElementById('workoutMemo').value = dayData.memo || "";
-    
-renderMediaList(dayData.media);
+    document.getElementById('workoutMemo').value = dayData.memo || "";
+    renderMediaList(dayData.media);
 }
 
-// 미디어 파일 업로드 처리
-function handleMediaUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+function renderMediaList(mediaList) {
+    const grid = document.getElementById('mediaPreviewGrid');
+    grid.innerHTML = '';
 
-    if (!workoutData[activeDay]) {
-        workoutData[activeDay] = { media: [], memo: "" };
+    if (!mediaList || mediaList.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 내 미디어가 없습니다.</div>';
+        return;
     }
 
-    Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fileData = {
-                id: Date.now() + Math.random(),
-                type: file.type.startsWith('video/') ? 'video' : 'image',
-                src: e.target.result
-            };
-            workoutData[activeDay].media.push(fileData);
-            saveToStorage();
-            renderMediaList(workoutData[activeDay].media);
-        };
-        reader.readAsDataURL(file);
-    });
-}
+    mediaList.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'media-card';
 
-// 해당 일차의 미디어 그리드 출력
-function renderMediaList(mediaList) {
-const grid = document.getElementById('mediaPreviewGrid');
-grid.innerHTML = '';
-
-if (!mediaList || mediaList.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 미디어가 없습니다.</div>';
-        grid.innerHTML = '<div style="color:var(--text-sub); font-size:12px; grid-column: 1 / -1; text-align:center; padding:15px;">등록된 내 미디어가 없습니다.</div>';
-return;
-}
-
-mediaList.forEach((item) => {
-const card = document.createElement('div');
-card.className = 'media-card';
-
-        let mediaElement = '';
-        if (item.type === 'video') {
-            mediaElement = `<video src="${item.src}" controls preload="metadata"></video>`;
-        } else {
-            mediaElement = `<img src="${item.src}" alt="증빙사진" onclick="window.open('${item.src}')">`;
-        }
         let mediaElement = item.type === 'video' 
             ? `<video src="${item.src}" controls></video>` 
             : `<img src="${item.src}" onclick="window.open('${item.src}')">`;
 
-        card.innerHTML = `
-            ${mediaElement}
-            <button class="delete-btn" onclick="deleteMedia(${item.id})">×</button>
-        `;
         card.innerHTML = `${mediaElement}<button class="delete-btn" onclick="deleteMedia(${item.id})">×</button>`;
-grid.appendChild(card);
-});
+        grid.appendChild(card);
+    });
 }
 
-// 미디어 삭제
 function deleteMedia(id) {
-    if (workoutData[activeDay]) {
-        workoutData[activeDay].media = workoutData[activeDay].media.filter(item => item.id !== id);
-        saveToStorage();
-        renderMediaList(workoutData[activeDay].media);
     if (myWorkoutData[activeDay]) {
         myWorkoutData[activeDay].media = myWorkoutData[activeDay].media.filter(item => item.id !== id);
         saveToLocalStorage();
         renderMediaList(myWorkoutData[activeDay].media);
-}
+    }
 }
 
-// 메모 자동 및 수동 저장
 function autoSaveMemo() {
-    if (!workoutData[activeDay]) workoutData[activeDay] = { media: [], memo: "" };
-    workoutData[activeDay].memo = document.getElementById('workoutMemo').value;
-    saveToStorage();
-}
-
-function saveMemoManual() {
-    autoSaveMemo();
-    alert(`${activeDay}일차 메모가 저장되었습니다.`);
     if (!myWorkoutData[activeDay]) myWorkoutData[activeDay] = { media: [], memo: "" };
     myWorkoutData[activeDay].memo = document.getElementById('workoutMemo').value;
     saveToLocalStorage();
 }
 
-// 현재 일차 삭제
 function deleteCurrentDay() {
-    if (confirm(`${activeDay}일차의 모든 사진, 동영상 및 메모를 삭제하시겠습니까?`)) {
-        delete workoutData[activeDay];
-        
-        const remainingDays = Object.keys(workoutData).map(Number);
-        if (remainingDays.length === 0) {
-            workoutData = { 1: { media: [], memo: "" } };
-            activeDay = 1;
-        } else {
-            activeDay = Math.min(...remainingDays);
-        }
-        
-        saveToStorage();
     if (confirm(`${activeDay}일차를 삭제하시겠습니까?`)) {
         delete myWorkoutData[activeDay];
         const remainingDays = Object.keys(myWorkoutData).map(Number);
         activeDay = remainingDays.length > 0 ? Math.min(...remainingDays) : 1;
         if (!myWorkoutData[activeDay]) myWorkoutData[1] = { media: [], memo: "" };
         saveToLocalStorage();
-renderTabs();
-loadDayData(activeDay);
-}
+        renderTabs();
+        loadDayData(activeDay);
+    }
 }
 
-function saveToStorage() {
 function saveToLocalStorage() {
-try {
-        localStorage.setItem('fitness_workout_data', JSON.stringify(workoutData));
-    } catch (e) {
-        alert('브라우저 용량이 초과되었습니다. 고화질 미디어 파일 용량을 줄이거나 안 쓰는 사진을 정리해 주세요.');
-    }
+    try {
         localStorage.setItem('fitness_my_workout_data', JSON.stringify(myWorkoutData));
     } catch (e) {}
 }
 
-// Web Share API 공유
 function shareApp() {
-if (navigator.share) {
-        navigator.share({
-            title: '통합 체력 평가 & 운동 기록장',
-            text: '체력 측정 및 일차별 운동 일지 앱입니다.',
-            url: window.location.href,
-        }).catch(() => {});
+    if (navigator.share) {
         navigator.share({ title: '통합 체력 평가장', url: window.location.href });
-} else {
-navigator.clipboard.writeText(window.location.href);
-        alert('앱 주소(URL)가 복사되었습니다!');
+    } else {
+        navigator.clipboard.writeText(window.location.href);
         alert('사이트 주소가 복사되었습니다!');
-}
+    }
 }
 
-// Strength Level 연령 보정 계수
+// --- 체력 분석 및 기준표 로직 ---
 function getStrengthAgeFactor(age) {
-if (age < 18) return 0.90 + ((age - 14) * 0.025);
-if (age <= 34) return 1.00;
-@@ -772,10 +911,8 @@ <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub
+    if (age < 18) return 0.90 + ((age - 14) * 0.025);
+    if (age <= 34) return 1.00;
+    if (age <= 39) return 0.97;
+    if (age <= 44) return 0.93;
+    if (age <= 49) return 0.88;
+    if (age <= 54) return 0.83;
+    if (age <= 59) return 0.77;
+    if (age <= 64) return 0.71;
+    return 0.65;
+}
 
-if (age >= 25 && age <= 29) {
-ageGroupTitle = "만 25~29세";
-        acsmAgeGroupTitle = "만 20~29세";
-kneaReach = isMale ? [15.6, 11.8, 7.1] : [18.5, 14.5, 9.8];
-kneaShuttle = isMale ? [54, 44, 32] : [36, 27, 19];
-        acsmPushup = isMale ? [36, 29, 22, 17] : [30, 21, 15, 10];
-} else if (age >= 30 && age <= 39) {
-ageGroupTitle = "만 30~39세";
-acsmAgeGroupTitle = "만 30~39세";
+function calculateFitness() {
+    const gender = document.getElementById('gender').value;
+    const age = parseInt(document.getElementById('age').value) || 25;
+    const w = parseFloat(document.getElementById('weight').value) || 70;
+    const h = (parseFloat(document.getElementById('height').value) || 170) / 100;
+    
+    const squat = parseFloat(document.getElementById('squat').value) || 0;
+    const bench = parseFloat(document.getElementById('bench').value) || 0;
+    const dead = parseFloat(document.getElementById('dead').value) || 0;
+    const legpress = parseFloat(document.getElementById('legpress').value) || 0;
+    const pushup = parseInt(document.getElementById('pushup').value) || 0;
+    const reach = parseFloat(document.getElementById('reach').value) || 0;
+    const shoulder = parseFloat(document.getElementById('shoulder').value) || 0;
+    const shuttle = parseInt(document.getElementById('shuttle').value) || 0;
+
+    const bmi = (w / (h * h)).toFixed(2);
+    const squatRatio = (squat / w).toFixed(2);
+    const benchRatio = (bench / w).toFixed(2);
+    const deadRatio = (dead / w).toFixed(2);
+    const lpRatio = (legpress / w).toFixed(2);
+
+    const isMale = gender === 'male';
+    const genderText = isMale ? "남성" : "여성";
+    const strengthAgeFactor = getStrengthAgeFactor(age);
+
+    document.getElementById('pushupLabel').innerText = isMale ? "팔굽혀펴기 (정자세 회)" : "팔굽혀펴기 (무릎대고 회)";
+    document.getElementById('currentProfileDisplay').innerText = `${genderText} / 만 ${age}세 / ${w}kg`;
+    document.getElementById('ageFactorDisplay').innerText = strengthAgeFactor.toFixed(2);
+
+    let ageGroupTitle = "만 19~24세";
+    let acsmAgeGroupTitle = "만 20~29세";
+
+    let kneaReach = isMale ? [16.1, 12.4, 7.8] : [19.2, 15.1, 10.5];
+    let kneaShuttle = isMale ? [62, 50, 38] : [41, 31, 22];
+    let acsmPushup = isMale ? [36, 29, 22, 17] : [30, 21, 15, 10];
+
+    if (age >= 25 && age <= 29) {
+        ageGroupTitle = "만 25~29세";
+        kneaReach = isMale ? [15.6, 11.8, 7.1] : [18.5, 14.5, 9.8];
+        kneaShuttle = isMale ? [54, 44, 32] : [36, 27, 19];
+    } else if (age >= 30 && age <= 39) {
+        ageGroupTitle = "만 30~39세";
+        acsmAgeGroupTitle = "만 30~39세";
+        kneaReach = isMale ? [14.5, 10.4, 5.5] : [17.8, 13.5, 8.6];
+        kneaShuttle = isMale ? [49, 39, 29] : [32, 23, 16];
+        acsmPushup = isMale ? [30, 22, 17, 12] : [27, 20, 13, 8];
+    } else if (age >= 40) {
+        ageGroupTitle = "만 40~49세";
+        acsmAgeGroupTitle = "만 40~49세";
+        kneaReach = isMale ? [13.5, 9.0, 3.8] : [16.5, 12.0, 7.0];
+        kneaShuttle = isMale ? [42, 31, 21] : [27, 19, 13];
+        acsmPushup = isMale ? [25, 17, 13, 10] : [24, 15, 11, 5];
+    }
+
+    const baseStrengthRatios = isMale ? {
+        squat: [0.75, 1.15, 1.60, 2.15, 2.75],
+        bench: [0.60, 0.90, 1.25, 1.65, 2.05],
+        dead:  [0.95, 1.40, 1.95, 2.55, 3.20],
+        legpress: [1.0, 1.5, 2.0, 2.8, 3.5]
+    } : {
+        squat: [0.50, 0.80, 1.15, 1.55, 2.00],
+        bench: [0.30, 0.50, 0.80, 1.10, 1.50],
+        dead:  [0.60, 0.95, 1.35, 1.85, 2.40],
+        legpress: [0.7, 1.1, 1.5, 2.1, 2.7]
+    };
+
+    const adjustedTargets = {
+        squat: baseStrengthRatios.squat.map(r => Math.round(r * w * strengthAgeFactor)),
+        bench: baseStrengthRatios.bench.map(r => Math.round(r * w * strengthAgeFactor)),
+        dead: baseStrengthRatios.dead.map(r => Math.round(r * w * strengthAgeFactor)),
+        legpress: baseStrengthRatios.legpress.map(r => Math.round(r * w * strengthAgeFactor))
+    };
+
+    document.getElementById('refProfileDisplay').innerText = `${genderText} / 만 ${age}세`;
+    document.getElementById('kneaProfileTitle').innerText = `${genderText} ${ageGroupTitle}`;
+    document.getElementById('acsmProfileTitle').innerText = `${genderText} ${acsmAgeGroupTitle}`;
+    document.getElementById('strengthGenderTitle').innerText = `${genderText} ${w}kg`;
+
+    const getLevelIndex = (val, targets) => {
+        for (let i = 4; i >= 0; i--) {
+            if (val >= targets[i]) return i;
+        }
+        return 0;
+    };
+
+    let squatIdx = getLevelIndex(squat, adjustedTargets.squat);
+    let benchIdx = getLevelIndex(bench, adjustedTargets.bench);
+    let deadIdx = getLevelIndex(dead, adjustedTargets.dead);
+    let lpIdx = getLevelIndex(legpress, adjustedTargets.legpress);
+
+    let reachIdx = reach >= kneaReach[0] ? 0 : reach >= kneaReach[1] ? 1 : reach >= kneaReach[2] ? 2 : 3;
+    let shuttleIdx = shuttle >= kneaShuttle[0] ? 0 : shuttle >= kneaShuttle[1] ? 1 : shuttle >= kneaShuttle[2] ? 2 : 3;
+    let bmiIdx = (bmi >= 18.5 && bmi <= 22.9) ? 0 : 1;
+    let pushupIdx = pushup >= acsmPushup[0] ? 0 : pushup >= acsmPushup[1] ? 1 : pushup >= acsmPushup[2] ? 2 : 3;
+    let shoulderIdx = shoulder <= 15 ? 0 : shoulder <= 22 ? 1 : 2;
+
+    const levels = ["Beginner", "Novice", "Intermediate", "Advanced", "Elite"];
+    const levelBadges = ["average", "good", "excellent", "excellent", "elite"];
+
+    let results = [
+        ["국민체력100", "src-korea", "앉아앞으로굽히기", `${reach} cm`, `1등:${kneaReach[0]}+ / 2등:${kneaReach[1]}~`, reachIdx === 0 ? "1등급" : reachIdx === 1 ? "2등급" : reachIdx === 2 ? "3등급" : "등외", reachIdx <= 1 ? "excellent" : reachIdx === 2 ? "average" : "poor"],
+        ["국민체력100", "src-korea", "BMI", `${bmi} kg/m²`, "정상: 18.5 ~ 22.9", bmiIdx === 0 ? "정상" : "비만/저체중", bmiIdx === 0 ? "excellent" : "poor"],
+        ["Strength Level", "src-strength", "스쿼트", `${squat} kg (${squatRatio}배)`, `Int:${adjustedTargets.squat[2]}kg / Adv:${adjustedTargets.squat[3]}kg`, levels[squatIdx], levelBadges[squatIdx]],
+        ["Strength Level", "src-strength", "벤치프레스", `${bench} kg (${benchRatio}배)`, `Int:${adjustedTargets.bench[2]}kg / Adv:${adjustedTargets.bench[3]}kg`, levels[benchIdx], levelBadges[benchIdx]],
+        ["Strength Level", "src-strength", "데드리프트", `${dead} kg (${deadRatio}배)`, `Int:${adjustedTargets.dead[2]}kg / Adv:${adjustedTargets.dead[3]}kg`, levels[deadIdx], levelBadges[deadIdx]],
+        ["Strength Level", "src-strength", "레그프레스", `${legpress} kg (${lpRatio}배)`, `Int:${adjustedTargets.legpress[2]}kg / Adv:${adjustedTargets.legpress[3]}kg`, levels[lpIdx], levelBadges[lpIdx]],
+        ["ACSM", "src-acsm", `팔굽혀펴기 (${isMale?'정자세':'무릎'})`, `${pushup} 회`, `1등:${acsmPushup[0]}+ / 2등:${acsmPushup[1]}~`, pushupIdx === 0 ? "1등급" : pushupIdx === 1 ? "2등급" : pushupIdx === 2 ? "3등급" : "4~5등급", pushupIdx <= 1 ? "excellent" : pushupIdx === 2 ? "good" : "poor"],
+        ["FMS", "src-fms", "어깨 가동성", `${shoulder} cm`, "3점:15cm / 2점:22cm 이내", shoulderIdx === 0 ? "3점 (Good)" : shoulderIdx === 1 ? "2점 (Average)" : "1점 (Poor)", shoulderIdx === 0 ? "excellent" : shoulderIdx === 1 ? "average" : "poor"],
+        ["국민체력100", "src-korea", "20m 셔틀런", `${shuttle} 회`, `1등:${kneaShuttle[0]}+ / 2등:${kneaShuttle[1]}~`, shuttleIdx === 0 ? "1등급" : shuttleIdx === 1 ? "2등급" : shuttleIdx === 2 ? "3등급" : "등외", shuttleIdx <= 1 ? "excellent" : shuttleIdx === 2 ? "good" : "poor"]
+    ];
+
+    const tbody = document.getElementById('resultBody');
+    tbody.innerHTML = '';
+    results.forEach(row => {
+        tbody.innerHTML += `
+            <tr>
+                <td><span class="source-tag ${row[1]}">${row[0]}</span></td>
+                <td><b>${row[2]}</b></td>
+                <td style="color:var(--accent-green); font-weight:bold;">${row[3]}</td>
+                <td style="font-size:11px; color:var(--text-sub);">${row[4]}</td>
+                <td><span class="badge ${row[6]}">${row[5]}</span></td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('kneaTableBody').innerHTML = `
+        <tr>
+            <td><b>앉아앞으로굽히기 (cm)</b></td>
+            <td class="${reachIdx === 0 ? 'highlight-cell' : ''}">${kneaReach[0]} cm 이상</td>
+            <td class="${reachIdx === 1 ? 'highlight-cell' : ''}">${kneaReach[1]} ~ ${(kneaReach[0]-0.1).toFixed(1)} cm</td>
+            <td class="${reachIdx === 2 ? 'highlight-cell' : ''}">${kneaReach[2]} ~ ${(kneaReach[1]-0.1).toFixed(1)} cm</td>
+            <td class="${reachIdx === 3 ? 'highlight-cell' : ''}">${(kneaReach[2]-0.1).toFixed(1)} cm 이하</td>
+        </tr>
+        <tr>
+            <td><b>20m 셔틀런 (회)</b></td>
+            <td class="${shuttleIdx === 0 ? 'highlight-cell' : ''}">${kneaShuttle[0]}회 이상</td>
+            <td class="${shuttleIdx === 1 ? 'highlight-cell' : ''}">${kneaShuttle[1]} ~ ${kneaShuttle[0]-1}회</td>
+            <td class="${shuttleIdx === 2 ? 'highlight-cell' : ''}">${kneaShuttle[2]} ~ ${kneaShuttle[1]-1}회</td>
+            <td class="${shuttleIdx === 3 ? 'highlight-cell' : ''}">${kneaShuttle[2]-1}회 이하</td>
+        </tr>
+        <tr>
+            <td><b>BMI (kg/m²)</b></td>
+            <td colspan="3" class="${bmiIdx === 0 ? 'highlight-cell' : ''}">18.5 ~ 22.9 (정상)</td>
+            <td class="${bmiIdx === 1 ? 'highlight-cell' : ''}">23.0 이상 (과체중/비만)</td>
+        </tr>
+    `;
+
+    const updateStrengthRow = (rowId, targetArray, activeCol) => {
+        const row = document.getElementById(rowId);
+        const cells = row.querySelectorAll('td');
+        cells[1].innerText = `${targetArray[0]} kg 이하`;
+        cells[2].innerText = `${targetArray[1]} kg`;
+        cells[3].innerText = `${targetArray[2]} kg`;
+        cells[4].innerText = `${targetArray[3]} kg`;
+        cells[5].innerText = `${targetArray[4]} kg 이상`;
+
+        for(let i=0; i<5; i++) {
+            if(i === activeCol) cells[i+1].classList.add('highlight-cell');
+            else cells[i+1].classList.remove('highlight-cell');
+        }
+    };
+    updateStrengthRow('row-squat', adjustedTargets.squat, squatIdx);
+    updateStrengthRow('row-bench', adjustedTargets.bench, benchIdx);
+    updateStrengthRow('row-dead', adjustedTargets.dead, deadIdx);
+    updateStrengthRow('row-legpress', adjustedTargets.legpress, lpIdx);
+
+    document.getElementById('acsmFmsTableBody').innerHTML = `
+        <tr>
+            <td><b>ACSM</b></td>
+            <td><b>팔굽혀펴기 (${isMale?'정자세':'무릎'})</b></td>
+            <td class="${pushupIdx === 0 ? 'highlight-cell' : ''}">${acsmPushup[0]}회 이상</td>
+            <td class="${pushupIdx === 1 ? 'highlight-cell' : ''}">${acsmPushup[1]} ~ ${acsmPushup[0]-1}회</td>
+            <td class="${pushupIdx === 2 ? 'highlight-cell' : ''}">${acsmPushup[2]} ~ ${acsmPushup[1]-1}회</td>
+            <td class="${pushupIdx === 3 ? 'highlight-cell' : ''}">${acsmPushup[2]-1}회 이하</td>
+        </tr>
+        <tr>
+            <td><b>FMS</b></td>
+            <td><b>어깨 가동성 (cm)</b></td>
+            <td class="${shoulderIdx === 0 ? 'highlight-cell' : ''}">손바닥 이내 (15cm 이내)</td>
+            <td class="${shoulderIdx === 1 ? 'highlight-cell' : ''}">1.5배 이내 (22cm 이내)</td>
+            <td class="${shoulderIdx === 2 ? 'highlight-cell' : ''}">22cm 초과 (가동성 제한)</td>
+            <td>통증 발생 시 (0점)</td>
+        </tr>
+    `;
+}
+
+calculateFitness();
+</script>
+
+</body>
+</html>
