@@ -90,7 +90,7 @@
             border: 1px solid var(--accent-cyan);
             border-radius: 12px;
             padding: 18px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .room-controls {
@@ -333,7 +333,12 @@
             font-size: 14px;
             margin-bottom: 10px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
+        }
+
+        .card-actions {
+            display: flex;
             gap: 6px;
         }
 
@@ -358,7 +363,7 @@
         .highlight-text { color: var(--accent-green); font-weight: bold; }
         .highlight-cell { border: 2px solid var(--highlight-border) !important; background-color: var(--highlight-bg) !important; font-weight: bold !important; color: var(--accent-green) !important; }
 
-        /* 모달 팝업 스타일 추가 */
+        /* 모달 팝업 스타일 */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -413,7 +418,7 @@
         <button class="share-btn" onclick="shareApp()">🔗 주소 공유하기</button>
     </div>
 
-    <!-- 🌐 방 번호 & 닉네임 공유 설정 -->
+    <!-- [1 순서] 🌐 실시간 운동 공유 방 -->
     <div class="room-box">
         <div style="font-weight:bold; color:var(--accent-cyan); font-size:15px;">
             👥 실시간 운동 공유 방 (Group Sync)
@@ -435,64 +440,8 @@
         </div>
     </div>
 
-    <!-- 1. 프로필 입력 -->
-    <div class="section-title">USER PROFILE (성별, 연령, 신체 지표)</div>
-    <div class="grid">
-        <div class="input-group">
-            <label>성별 선택</label>
-            <select id="gender" onchange="calculateFitness()">
-                <option value="male" selected>남성 (Male)</option>
-                <option value="female">여성 (Female)</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>만 나이 (세)</label>
-            <input type="number" id="age" value="42" oninput="calculateFitness()">
-        </div>
-        <div class="input-group">
-            <label>체중 (kg)</label>
-            <input type="number" id="weight" value="75" step="0.1" oninput="calculateFitness()">
-        </div>
-        <div class="input-group">
-            <label>신장 (cm)</label>
-            <input type="number" id="height" value="175" step="0.1" oninput="calculateFitness()">
-        </div>
-    </div>
-
-    <!-- 2. 측정치 입력 -->
-    <div class="section-title">ATHLETIC METRICS (근력 1RM & 체력 측정값)</div>
-    <div class="grid">
-        <div class="input-group"><label>스쿼트 (kg)</label><input type="number" id="squat" value="110" oninput="calculateFitness()"></div>
-        <div class="input-group"><label>벤치프레스 (kg)</label><input type="number" id="bench" value="80" oninput="calculateFitness()"></div>
-        <div class="input-group"><label>데드리프트 (kg)</label><input type="number" id="dead" value="140" oninput="calculateFitness()"></div>
-        <div class="input-group"><label>레그프레스 (kg)</label><input type="number" id="legpress" value="160" oninput="calculateFitness()"></div>
-        <div class="input-group"><label id="pushupLabel">팔굽혀펴기 (회)</label><input type="number" id="pushup" value="28" oninput="calculateFitness()"></div>
-        <div class="input-group"><label>앉아앞으로굽히기 (cm)</label><input type="number" id="reach" value="12.0" step="0.1" oninput="calculateFitness()"></div>
-        <div class="input-group"><label>어깨 가동성 (간격 cm)</label><input type="number" id="shoulder" value="11.0" step="0.1" oninput="calculateFitness()"></div>
-        <div class="input-group"><label>20m 셔틀런 (회)</label><input type="number" id="shuttle" value="45" oninput="calculateFitness()"></div>
-    </div>
-
-    <button class="action-btn" onclick="calculateFitness()">ANALYZE PERFORMANCE (분석 갱신)</button>
-
-    <!-- 3. 개인 평가 결과 -->
-    <h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-sub);">(<span id="currentProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>기관</th>
-                    <th>측정 항목</th>
-                    <th>사용자 기록</th>
-                    <th>성별·연령·체중 보정 기준</th>
-                    <th>최종 등급</th>
-                </tr>
-            </thead>
-            <tbody id="resultBody"></tbody>
-        </table>
-    </div>
-
-    <!-- 4. 일차별 운동 기록 작성 -->
-    <h2>일차별 운동 일지 작성 및 내 미디어 등록</h2>
+    <!-- [2 순서] 📝 일차별 운동 일지 작성 및 내 미디어 등록 -->
+    <h2 style="margin-top: 10px;">일차별 운동 일지 작성 및 내 미디어 등록</h2>
     
     <div id="dayTabsContainer" class="day-tabs-container"></div>
 
@@ -517,7 +466,7 @@
         </div>
     </div>
 
-    <!-- 👥 그룹 공유 일지 표시 영역 -->
+    <!-- [3 순서] 👥 방 멤버 전체 공유 일지 -->
     <h2>👥 방 멤버 전체 공유 일지 (<span id="sharedDayTitle" style="color:var(--accent-cyan);">1일차</span>)</h2>
     <div id="groupLogsContainer" class="group-logs-container">
         <div style="color:var(--text-sub); font-size:13px; text-align:center; padding:20px; background:var(--card-inner-bg); border-radius:8px;">
@@ -525,7 +474,62 @@
         </div>
     </div>
 
-    <!-- 5. 참조 등급표 -->
+    <!-- [4 순서] 📊 개인 종합 분석 결과 (프로필 & 측정값 입력 포함) -->
+    <h2>개인 종합 분석 결과 <span style="font-size:13px; color:var(--text-sub);">(<span id="currentProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
+    
+    <div class="section-title">USER PROFILE (성별, 연령, 신체 지표)</div>
+    <div class="grid">
+        <div class="input-group">
+            <label>성별 선택</label>
+            <select id="gender" onchange="calculateFitness()">
+                <option value="male" selected>남성 (Male)</option>
+                <option value="female">여성 (Female)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>만 나이 (세)</label>
+            <input type="number" id="age" value="42" oninput="calculateFitness()">
+        </div>
+        <div class="input-group">
+            <label>체중 (kg)</label>
+            <input type="number" id="weight" value="75" step="0.1" oninput="calculateFitness()">
+        </div>
+        <div class="input-group">
+            <label>신장 (cm)</label>
+            <input type="number" id="height" value="175" step="0.1" oninput="calculateFitness()">
+        </div>
+    </div>
+
+    <div class="section-title">ATHLETIC METRICS (근력 1RM & 체력 측정값)</div>
+    <div class="grid">
+        <div class="input-group"><label>스쿼트 (kg)</label><input type="number" id="squat" value="110" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>벤치프레스 (kg)</label><input type="number" id="bench" value="80" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>데드리프트 (kg)</label><input type="number" id="dead" value="140" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>레그프레스 (kg)</label><input type="number" id="legpress" value="160" oninput="calculateFitness()"></div>
+        <div class="input-group"><label id="pushupLabel">팔굽혀펴기 (회)</label><input type="number" id="pushup" value="28" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>앉아앞으로굽히기 (cm)</label><input type="number" id="reach" value="12.0" step="0.1" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>어깨 가동성 (간격 cm)</label><input type="number" id="shoulder" value="11.0" step="0.1" oninput="calculateFitness()"></div>
+        <div class="input-group"><label>20m 셔틀런 (회)</label><input type="number" id="shuttle" value="45" oninput="calculateFitness()"></div>
+    </div>
+
+    <button class="action-btn" onclick="calculateFitness()">ANALYZE PERFORMANCE (분석 갱신)</button>
+
+    <div class="table-responsive" style="margin-top: 20px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>기관</th>
+                    <th>측정 항목</th>
+                    <th>사용자 기록</th>
+                    <th>성별·연령·체중 보정 기준</th>
+                    <th>최종 등급</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+        </table>
+    </div>
+
+    <!-- [5 순서] 📋 실시간 연동 기준표 -->
     <h2>실시간 연동 기준표 <span style="font-size:13px; color:var(--text-sub);">(<span id="refProfileDisplay" class="highlight-text">남성 / 만 42세</span>)</span></h2>
     
     <div class="section-title">국민체력100 - <span id="kneaProfileTitle">남성 만 40~49세</span></div>
@@ -746,7 +750,31 @@ async function uploadLogToRoom() {
     }
 }
 
-// 방 데이터 수신
+// 공유된 내 일지 삭제 함수
+async function deleteMySharedLog(userKey) {
+    if (!confirm('공유된 일지를 삭제하시겠습니까?')) return;
+    try {
+        const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/days/${activeDay}/${userKey}.json`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            alert('공유 일지가 삭제되었습니다.');
+            fetchRoomData();
+        } else {
+            alert('삭제에 실패하였습니다.');
+        }
+    } catch (e) {
+        alert(`오류 발생: ${e.message}`);
+    }
+}
+
+// 내 일지 수정 모드로 포커스 이동
+function scrollToEdit() {
+    document.getElementById('workoutMemo').focus();
+    document.getElementById('workoutMemo').scrollIntoView({ behavior: 'smooth' });
+}
+
+// 방 데이터 수신 및 렌더링
 async function fetchRoomData() {
     if (!currentRoomCode) return;
 
@@ -765,6 +793,7 @@ async function fetchRoomData() {
 
         Object.keys(data).forEach(userKey => {
             const userLog = data[userKey];
+            const isMyLog = (userLog.userName === myUserName);
             const card = document.createElement('div');
             card.className = 'member-log-card';
 
@@ -783,9 +812,24 @@ async function fetchRoomData() {
                 mediaHtml = '<div style="color:var(--text-sub); font-size:11px; margin-bottom:10px;">(등록된 사진/동영상 없음)</div>';
             }
 
+            // 내가 쓴 글이면 수정/삭제 버튼 제공
+            let actionButtons = '';
+            if (isMyLog) {
+                actionButtons = `
+                    <div class="card-actions">
+                        <button class="btn-small btn-sync" style="padding: 4px 8px; font-size: 11px;" onclick="scrollToEdit()">수정</button>
+                        <button class="btn-small btn-clear" style="padding: 4px 8px; font-size: 11px;" onclick="deleteMySharedLog('${userKey}')">삭제</button>
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="member-name-tag">
-                    👤 ${userLog.userName} <span style="font-size:11px; color:var(--text-sub); font-weight:normal;">(${userLog.updatedAt || '최근 작성'})</span>
+                    <div>
+                        👤 ${userLog.userName} ${isMyLog ? '<span style="font-size:11px; color:var(--accent-green);">(나)</span>' : ''}
+                        <span style="font-size:11px; color:var(--text-sub); font-weight:normal;">(${userLog.updatedAt || '최근 작성'})</span>
+                    </div>
+                    ${actionButtons}
                 </div>
                 ${mediaHtml}
                 <div style="background:var(--bg-dark); padding:10px; border-radius:6px; font-size:13px; white-space:pre-wrap; border:1px solid var(--border-color);">${userLog.memo || '메모가 없습니다.'}</div>
