@@ -357,6 +357,52 @@
 
         .highlight-text { color: var(--accent-green); font-weight: bold; }
         .highlight-cell { border: 2px solid var(--highlight-border) !important; background-color: var(--highlight-bg) !important; font-weight: bold !important; color: var(--accent-green) !important; }
+
+        /* 모달 팝업 스타일 추가 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-cyan);
+            padding: 24px;
+            border-radius: 12px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            color: var(--text-main);
+            box-shadow: 0 10px 25px rgba(0,240,255,0.2);
+        }
+
+        .code-display {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: var(--accent-green);
+            margin: 10px 0;
+            background: var(--card-inner-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .share-box {
+            background: var(--card-inner-bg);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            word-break: break-all;
+            font-size: 12px;
+            color: var(--text-sub);
+            border: 1px dashed var(--border-color);
+        }
     </style>
 </head>
 <body>
@@ -538,6 +584,24 @@
     </div>
 </div>
 
+<!-- 🎉 방 생성 공유 모달 팝업 -->
+<div id="share-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 style="color:var(--accent-cyan); margin-top:0;">🎉 방이 생성되었습니다!</h3>
+    <p style="font-size:13px; color:var(--text-sub);">초대 코드로 친구와 운동을 공유해보세요.</p>
+    
+    <div style="font-size:12px; margin-top:15px;"><strong>참여 코드</strong></div>
+    <div id="modal-code" class="code-display">------</div>
+    <button class="btn-small btn-sync" style="width:100%; margin-bottom:12px;" onclick="copyCode()">코드 복사</button>
+    
+    <div style="font-size:12px;"><strong>공유용 전체 링크</strong></div>
+    <div id="modal-link" class="share-box">https://...</div>
+    <button class="btn-small btn-save" style="width:100%;" onclick="copyLink()">전체 링크 복사</button>
+    
+    <button class="btn-small btn-clear" onclick="closeModalAndStart()" style="margin-top:20px; width:100%;">닫기 및 시작하기</button>
+  </div>
+</div>
+
 <script>
 // --- Firebase REST API 연결 주소 ---
 const FIREBASE_DB_URL = "https://fitness-6a8e0-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -555,10 +619,18 @@ if (Object.keys(myWorkoutData).length === 0) {
 
 window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('userNameInput').value = myUserName;
-    if (currentRoomCode) {
+    
+    // URL 매개변수로 room 이 들어온 경우 처리
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+        document.getElementById('roomCodeInput').value = roomParam;
+        joinRoom();
+    } else if (currentRoomCode) {
         document.getElementById('roomCodeInput').value = currentRoomCode;
         joinRoom();
     }
+    
     renderTabs();
     loadDayData(1);
 });
@@ -568,6 +640,30 @@ function createNewRoom() {
     const randomCode = 'ROOM' + Math.floor(1000 + Math.random() * 9000);
     document.getElementById('roomCodeInput').value = randomCode;
     joinRoom();
+    showShareModal(randomCode);
+}
+
+function showShareModal(roomCode) {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+    document.getElementById('modal-code').innerText = roomCode;
+    document.getElementById('modal-link').innerText = shareUrl;
+    document.getElementById('share-modal').style.display = 'flex';
+}
+
+function copyCode() {
+    const code = document.getElementById('modal-code').innerText;
+    navigator.clipboard.writeText(code);
+    alert("참여 코드가 복사되었습니다.");
+}
+
+function copyLink() {
+    const linkText = document.getElementById('modal-link').innerText;
+    navigator.clipboard.writeText(linkText);
+    alert("공유 링크가 복사되었습니다.");
+}
+
+function closeModalAndStart() {
+    document.getElementById('share-modal').style.display = 'none';
 }
 
 function joinRoom() {
