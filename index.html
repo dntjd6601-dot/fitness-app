@@ -585,7 +585,7 @@
                 <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event)">
 
                 <!-- PDF 다운로드 버튼 -->
-                <a id="downloadPdfBtn" href="data:application/pdf;base64,JVBERi0xLjQKJSDi48JPCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9DT250ZW50cyA0IDAgUj4+CmVuZG9iago4IDAgb2JqCjw8L0xlbmd0aCA2Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzAwIFRkCihGVVRVUkUgRklUTkVTUyBXT1JLT1VUIFBMQU4pIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjE2IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA1IC9Sb290IDEgMCBSPj4Kc3RhcnR4cmVmCjMzNQolJUVPRg==" download="개인_운동_계획서.pdf" class="download-pdf-btn">
+                <a id="downloadPdfBtn" href="data:application/pdf;base64,JVBERi0xLjQKJSDi48JPCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9DT250ZW50cyA0IDAgUj4+CmVuZG9iago8IDAgb2JqCjw8L0xlbmd0aCA2Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzAwIFRkCihGVVRVUkUgRklUTkVTUyBXT1JLT1VUIFBMQU4pIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjE2IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA1IC9Sb290IDEgMCBSPj4Kc3RhcnR4cmVmCjMzNQolJUVPRg==" download="운동이_개인_운동_계획서.pdf" class="download-pdf-btn">
                     📥 계획서 PDF 다운로드
                 </a>
             </div>
@@ -787,6 +787,19 @@ window.addEventListener('DOMContentLoaded', () => {
     // 저장된 PDF 데이터 로드
     loadSavedPdf();
 
+    // 닉네임 변경 시 다운로드 파일명 자동 업데이트 이벤트
+    document.getElementById('userNameInput').addEventListener('input', (e) => {
+        myUserName = e.target.value.trim() || '운동이';
+        localStorage.setItem('fitness_user_name', myUserName);
+        const currentPdf = localStorage.getItem('custom_workout_pdf_data');
+        if (currentPdf) {
+            updatePdfUI(currentPdf, `${myUserName}_개인_운동_계획서.pdf`);
+        } else {
+            const btn = document.getElementById('downloadPdfBtn');
+            btn.download = `${myUserName}_개인_운동_계획서.pdf`;
+        }
+    });
+
     // URL 매개변수로 room 이 들어온 경우 처리
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
@@ -828,8 +841,8 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeImageViewer();
 });
 
-// --- PDF 파일 업로드 / 다운로드 관련 처리 ---
-function handlePdfUpload(event) {
+// --- PDF 파일 업로드 / 다운로드 및 방 공유 처리 ---
+async function handlePdfUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -838,20 +851,54 @@ function handlePdfUpload(event) {
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Pdf = e.target.result;
-        const pdfFileName = file.name;
+    // 파일 용량 5MB 초과 확인
+    if (file.size > 5 * 1024 * 1024) {
+        alert('공유 및 저장을 위해 PDF 파일 용량은 5MB 이하로 업로드해주세요.');
+        return;
+    }
 
-        // localStorage 저장 (브라우저 저장소 크기 제한 고려)
+    const currentNick = document.getElementById('userNameInput').value.trim() || '운동이';
+    const customFileName = `${currentNick}_개인_운동_계획서.pdf`;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const base64Pdf = e.target.result;
+
+        // 1. 로컬 저장소 저장
         try {
             localStorage.setItem('custom_workout_pdf_data', base64Pdf);
-            localStorage.setItem('custom_workout_pdf_name', pdfFileName);
-            updatePdfUI(base64Pdf, pdfFileName);
-            alert('개인 운동 계획서(PDF)가 업로드되었습니다!');
+            localStorage.setItem('custom_workout_pdf_name', customFileName);
         } catch (err) {
-            alert('파일 용량이 커서 저장소에 보관하지 못했습니다. 다운로드는 바로 가능합니다.');
-            updatePdfUI(base64Pdf, pdfFileName);
+            console.warn('로컬 저장소 제한 초과');
+        }
+
+        // 2. UI 즉시 갱신
+        updatePdfUI(base64Pdf, customFileName);
+
+        // 3. 방에 접속한 경우 Firebase 공유 DB에 업로드
+        if (currentRoomCode) {
+            try {
+                const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/pdfData.json`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileName: customFileName,
+                        uploadedBy: currentNick,
+                        pdfBase64: base64Pdf,
+                        updatedAt: new Date().toLocaleTimeString()
+                    })
+                });
+
+                if (response.ok) {
+                    alert(`[${customFileName}] 이 성공적으로 업로드 및 방 멤버들에게 공유되었습니다!`);
+                } else {
+                    alert('방 공유 업로드 중 문제가 발생하였습니다.');
+                }
+            } catch (err) {
+                alert(`네트워크 업로드 오류: ${err.message}`);
+            }
+        } else {
+            alert(`[${customFileName}] 개인 저장이 완료되었습니다.\n(공유 방에 입장하시면 멤버들에게도 전달됩니다)`);
         }
     };
     reader.readAsDataURL(file);
@@ -859,10 +906,14 @@ function handlePdfUpload(event) {
 
 function loadSavedPdf() {
     const savedData = localStorage.getItem('custom_workout_pdf_data');
-    const savedName = localStorage.getItem('custom_workout_pdf_name');
+    const currentNick = document.getElementById('userNameInput').value.trim() || '운동이';
+    const fileName = `${currentNick}_개인_운동_계획서.pdf`;
 
-    if (savedData && savedName) {
-        updatePdfUI(savedData, savedName);
+    if (savedData) {
+        updatePdfUI(savedData, fileName);
+    } else {
+        const btn = document.getElementById('downloadPdfBtn');
+        btn.download = fileName;
     }
 }
 
@@ -927,7 +978,13 @@ function joinRoom() {
 
     document.getElementById('roomStatusDisplay').innerHTML = `🟢 접속 방 번호: <b style="color:var(--accent-cyan); font-size:15px;">${currentRoomCode}</b> | 👤 닉네임: <b style="color:var(--accent-green);">${myUserName}</b>`;
 
-    // 주기적 방 데이터 조회 실행
+    // 닉네임 변경 반영 다운로드명 업데이트
+    const currentPdf = localStorage.getItem('custom_workout_pdf_data');
+    if (currentPdf) {
+        updatePdfUI(currentPdf, `${myUserName}_개인_운동_계획서.pdf`);
+    }
+
+    // 주기적 방 데이터 및 공유 PDF 조회 실행
     fetchRoomData();
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(fetchRoomData, 4000); // 4초 마다 실시간 동기화
@@ -1010,10 +1067,22 @@ function scrollToEdit() {
     document.getElementById('workoutMemo').scrollIntoView({ behavior: 'smooth' });
 }
 
-// 방 데이터 수신 및 렌더링
+// 방 데이터 및 방 멤버 공유 PDF 수신 렌더링
 async function fetchRoomData() {
     if (!currentRoomCode) return;
 
+    // 1. 방 공유 PDF 동기화 수신
+    try {
+        const pdfRes = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/pdfData.json`);
+        if (pdfRes.ok) {
+            const sharedPdf = await pdfRes.json();
+            if (sharedPdf && sharedPdf.pdfBase64) {
+                updatePdfUI(sharedPdf.pdfBase64, sharedPdf.fileName);
+            }
+        }
+    } catch (e) {}
+
+    // 2. 방 멤버 일지 수신
     try {
         const response = await fetch(`${FIREBASE_DB_URL}/rooms/${currentRoomCode}/days/${activeDay}.json`);
         if (!response.ok) return;
