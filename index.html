@@ -342,6 +342,85 @@
             gap: 6px;
         }
 
+        /* 계획서 영역 스타일 */
+        .plan-download-box {
+            background: var(--card-inner-bg);
+            border: 1px solid var(--accent-orange);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .plan-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .plan-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .pdf-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .pdf-action-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .upload-pdf-label {
+            background: var(--card-bg);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .upload-pdf-label:hover {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        .download-pdf-btn {
+            background: linear-gradient(135deg, #ff9900 0%, #d47e00 100%);
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .download-pdf-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: var(--card-inner-bg); border-radius: 8px; overflow: hidden; min-width: 600px; }
         th, td { border: 1px solid var(--border-color); padding: 10px 8px; text-align: center; font-size: 12px; color: var(--text-main); }
@@ -437,6 +516,34 @@
 
         <div class="room-status" id="roomStatusDisplay">
             🌐 상태: 오프라인 (개인 전용 모드)
+        </div>
+    </div>
+
+    <!-- [이동 위치] 📌 개인 운동 계획서 (PDF 업로드 & 다운로드 구역) -->
+    <div class="plan-download-box">
+        <div class="plan-header-row">
+            <div class="plan-info">
+                <span class="pdf-icon">📄</span>
+                <div>
+                    <div style="font-weight: bold; color: var(--accent-orange); font-size: 15px;">📌 개인 운동 계획서 (PDF)</div>
+                    <div id="pdfStatusText" style="font-size: 12px; color: var(--text-sub); margin-top: 3px;">
+                        기본 계획서가 등록되어 있습니다. 새 PDF 파일을 등록하거나 다운로드하세요.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pdf-action-group">
+                <!-- PDF 업로드 버튼 및 숨김 input -->
+                <label class="upload-pdf-label" for="pdfFileInput">
+                    📤 PDF 파일 업로드
+                </label>
+                <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event)">
+
+                <!-- PDF 다운로드 버튼 -->
+                <a id="downloadPdfBtn" href="data:application/pdf;base64,JVBERi0xLjQKJSDi48JPCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9DT250ZW50cyA0IDAgUj4+CmVuZG9iago0IDAgb2JqCjw8L0xlbmd0aCA2Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzAwIFRkCihGVVRVUkUgRklUTkVTUyBXT1JLT1VUIFBMQU4pIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjE2IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA1IC9Sb290IDEgMCBSPj4Kc3RhcnR4cmVmCjMzNQolJUVPRg==" download="개인_운동_계획서.pdf" class="download-pdf-btn">
+                    📥 계획서 PDF 다운로드
+                </a>
+            </div>
         </div>
     </div>
 
@@ -624,6 +731,9 @@ if (Object.keys(myWorkoutData).length === 0) {
 window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('userNameInput').value = myUserName;
     
+    // 저장된 PDF 데이터 로드
+    loadSavedPdf();
+
     // URL 매개변수로 room 이 들어온 경우 처리
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
@@ -638,6 +748,53 @@ window.addEventListener('DOMContentLoaded', () => {
     renderTabs();
     loadDayData(1);
 });
+
+// --- PDF 파일 업로드 / 다운로드 관련 처리 ---
+function handlePdfUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+        alert('PDF 파일만 업로드할 수 있습니다.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Pdf = e.target.result;
+        const pdfFileName = file.name;
+
+        // localStorage 저장 (브라우저 저장소 크기 제한 고려)
+        try {
+            localStorage.setItem('custom_workout_pdf_data', base64Pdf);
+            localStorage.setItem('custom_workout_pdf_name', pdfFileName);
+            updatePdfUI(base64Pdf, pdfFileName);
+            alert('개인 운동 계획서(PDF)가 업로드되었습니다!');
+        } catch (err) {
+            alert('파일 용량이 커서 저장소에 보관하지 못했습니다. 다운로드는 바로 가능합니다.');
+            updatePdfUI(base64Pdf, pdfFileName);
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function loadSavedPdf() {
+    const savedData = localStorage.getItem('custom_workout_pdf_data');
+    const savedName = localStorage.getItem('custom_workout_pdf_name');
+
+    if (savedData && savedName) {
+        updatePdfUI(savedData, savedName);
+    }
+}
+
+function updatePdfUI(base64Data, fileName) {
+    const downloadBtn = document.getElementById('downloadPdfBtn');
+    const pdfStatusText = document.getElementById('pdfStatusText');
+
+    downloadBtn.href = base64Data;
+    downloadBtn.download = fileName;
+    pdfStatusText.innerHTML = `등록된 파일: <b style="color:var(--accent-green);">${fileName}</b>`;
+}
 
 // --- 공유 방 관리 함수 ---
 function createNewRoom() {
