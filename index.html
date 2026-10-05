@@ -269,6 +269,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            cursor: pointer;
         }
 
         .media-card .delete-btn {
@@ -283,6 +284,7 @@
             height: 24px;
             font-weight: bold;
             cursor: pointer;
+            z-index: 2;
         }
 
         .workout-memo {
@@ -446,7 +448,7 @@
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             display: none;
             justify-content: center;
             align-items: center;
@@ -486,6 +488,49 @@
             font-size: 12px;
             color: var(--text-sub);
             border: 1px dashed var(--border-color);
+        }
+
+        /* 🖼️ 이미지/동영상 확대 라이트박스 모달 스타일 */
+        .image-viewer-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .image-viewer-container {
+            position: relative;
+            max-width: 95%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-viewer-container img, .image-viewer-container video {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .image-viewer-close-btn {
+            margin-top: 15px;
+            padding: 8px 24px;
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -540,7 +585,7 @@
                 <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event)">
 
                 <!-- PDF 다운로드 버튼 -->
-                <a id="downloadPdfBtn" href="data:application/pdf;base64,JVBERi0xLjQKJSDi48JPCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9DT250ZW50cyA0IDAgUj4+CmVuZG9iago0IDAgb2JqCjw8L0xlbmd0aCA2Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzAwIFRkCihGVVRVUkUgRklUTkVTUyBXT1JLT1VUIFBMQU4pIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjE2IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA1IC9Sb290IDEgMCBSPj4Kc3RhcnR4cmVmCjMzNQolJUVPRg==" download="개인_운동_계획서.pdf" class="download-pdf-btn">
+                <a id="downloadPdfBtn" href="data:application/pdf;base64,JVBERi0xLjQKJSDi48JPCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlIC9QYWdlcyAvQ291bnQgMSAvS2lkcyBbMyAwIFJdPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZSAvUGFnZSAvUGFyZW50IDIgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9DT250ZW50cyA0IDAgUj4+CmVuZG9iago4IDAgb2JqCjw8L0xlbmd0aCA2Nz4+CnN0cmVhbQpCVAovRjEgMjQgVGYKNzAgNzAwIFRkCihGVVRVUkUgRklUTkVTUyBXT1JLT1VUIFBMQU4pIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjE2IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA1IC9Sb290IDEgMCBSPj4Kc3RhcnR4cmVmCjMzNQolJUVPRg==" download="개인_운동_계획서.pdf" class="download-pdf-btn">
                     📥 계획서 PDF 다운로드
                 </a>
             </div>
@@ -713,6 +758,14 @@
   </div>
 </div>
 
+<!-- 🖼️ 미디어(사진/영상) 확대 미리보기 라이트박스 모달 -->
+<div id="imageViewerModal" class="image-viewer-modal" onclick="closeImageViewer()">
+    <div class="image-viewer-container" onclick="event.stopPropagation()">
+        <div id="imageViewerContent"></div>
+        <button class="image-viewer-close-btn" onclick="closeImageViewer()">닫기</button>
+    </div>
+</div>
+
 <script>
 // --- Firebase REST API 연결 주소 ---
 const FIREBASE_DB_URL = "https://fitness-6a8e0-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -747,6 +800,32 @@ window.addEventListener('DOMContentLoaded', () => {
     
     renderTabs();
     loadDayData(1);
+});
+
+// 🖼️ 사진 / 미디어 확대 팝업 제어 함수
+function openImageViewer(src, type = 'image') {
+    const modal = document.getElementById('imageViewerModal');
+    const container = document.getElementById('imageViewerContent');
+
+    if (type === 'video') {
+        container.innerHTML = `<video src="${src}" controls autoplay style="max-width:100%; max-height:80vh;"></video>`;
+    } else {
+        container.innerHTML = `<img src="${src}" alt="확대 이미지" style="max-width:100%; max-height:80vh;">`;
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeImageViewer() {
+    const modal = document.getElementById('imageViewerModal');
+    const container = document.getElementById('imageViewerContent');
+    container.innerHTML = '';
+    modal.style.display = 'none';
+}
+
+// ESC 키 입력 시 확대 모달 닫기
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeImageViewer();
 });
 
 // --- PDF 파일 업로드 / 다운로드 관련 처리 ---
@@ -958,10 +1037,11 @@ async function fetchRoomData() {
             if (userLog.media && userLog.media.length > 0) {
                 mediaHtml = '<div class="media-preview-grid">';
                 userLog.media.forEach(m => {
+                    const safeSrc = m.src.replace(/'/g, "\\'");
                     if (m.type === 'video') {
-                        mediaHtml += `<div class="media-card"><video src="${m.src}" controls></video></div>`;
+                        mediaHtml += `<div class="media-card"><video src="${m.src}" onclick="openImageViewer('${safeSrc}', 'video')"></video></div>`;
                     } else {
-                        mediaHtml += `<div class="media-card"><img src="${m.src}" onclick="window.open('${m.src}')"></div>`;
+                        mediaHtml += `<div class="media-card"><img src="${m.src}" onclick="openImageViewer('${safeSrc}', 'image')"></div>`;
                     }
                 });
                 mediaHtml += '</div>';
@@ -1125,10 +1205,11 @@ function renderMediaList(mediaList) {
     mediaList.forEach((item) => {
         const card = document.createElement('div');
         card.className = 'media-card';
+        const safeSrc = item.src.replace(/'/g, "\\'");
 
         let mediaElement = item.type === 'video' 
-            ? `<video src="${item.src}" controls></video>` 
-            : `<img src="${item.src}" onclick="window.open('${item.src}')">`;
+            ? `<video src="${item.src}" onclick="openImageViewer('${safeSrc}', 'video')"></video>` 
+            : `<img src="${item.src}" onclick="openImageViewer('${safeSrc}', 'image')">`;
 
         card.innerHTML = `${mediaElement}<button class="delete-btn" onclick="deleteMedia(${item.id})">×</button>`;
         grid.appendChild(card);
